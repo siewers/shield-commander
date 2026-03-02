@@ -294,22 +294,24 @@ public sealed partial class MainWindow : Window
             DefaultButton = ContentDialogButton.Close,
         };
 
-        // Auto-close dialog when device connects
-        void OnPropertyChanged(object? s, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(DeviceViewModel.IsConnected) && vm.DevicePage.IsConnected)
-            {
-                vm.DevicePage.PropertyChanged -= OnPropertyChanged;
-                dialog.Hide();
-            }
-        }
-
-        vm.DevicePage.PropertyChanged += OnPropertyChanged;
+        vm.DevicePage.PropertyChanged += OnDevicePropertyChange;
 
         await dialog.ShowAsync();
 
         // Clean up in case dialog was closed manually
-        vm.DevicePage.PropertyChanged -= OnPropertyChanged;
+        vm.DevicePage.PropertyChanged -= OnDevicePropertyChange;
+
+        return;
+
+        // Auto-close dialog when device connects
+        void OnDevicePropertyChange(object? s, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(DeviceViewModel.IsConnected) && vm.DevicePage.IsConnected)
+            {
+                vm.DevicePage.PropertyChanged -= OnDevicePropertyChange;
+                dialog.Hide();
+            }
+        }
     }
 
     private void UpdateFrequency_Click(object? sender, EventArgs e)

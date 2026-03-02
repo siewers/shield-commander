@@ -50,7 +50,7 @@ internal sealed class ThermalQuery : IAdbBatchQuery<DynamicSections>
 
         if (temps.Count > 0)
         {
-            summary = string.Join(", ", temps.Select(t => $"{t.Name}: {t.Value:F1}°C"));
+            summary = string.Join(", ", temps.Select(t => FormattableString.Invariant($"{t.Name}: {t.Value:F1}°C")));
             zones = temps.Select(t => (t.Name, (double)t.Value)).ToList();
         }
 

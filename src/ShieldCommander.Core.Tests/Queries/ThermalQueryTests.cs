@@ -44,9 +44,10 @@ public class ThermalQueryTests
 
         await Assert.That(result.Zones).Count().IsEqualTo(5);
         await Assert.That(result.Zones[0].Name).IsEqualTo("CPU0");
-        await Assert.That((float)result.Zones[0].Value).IsEqualTo(56.000004f);
+        // Value passes through float.TryParse, so compare at float precision
+        await Assert.That(result.Zones[0].Value).IsEqualTo(56.000004f);
         await Assert.That(result.Zones[4].Name).IsEqualTo("GPU");
-        await Assert.That((float)result.Zones[4].Value).IsEqualTo(55.500004f);
+        await Assert.That(result.Zones[4].Value).IsEqualTo(55.500004f);
     }
 
     [Test]

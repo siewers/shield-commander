@@ -29,6 +29,7 @@ public class NetDevQueryTests
         await Assert.That(result.PacketsIn).IsEqualTo(2_787_138L);
         // wlan0(388) + eth0(34217039)
         await Assert.That(result.BytesOut).IsEqualTo(34_217_427L);
+        // wlan0(4) + eth0(388641)
         await Assert.That(result.PacketsOut).IsEqualTo(388_645L);
     }
 

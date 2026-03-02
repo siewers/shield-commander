@@ -9,14 +9,14 @@ public class SpanParsingExtensionsTests
     [Arguments("MemFree:   256 kB", 256 * 1024L)]
     public async Task KbToBytes_ParsesLabelAndValue(string input, long expected)
     {
-        var result = ((ReadOnlySpan<char>)input).KbToBytes();
+        var result = input.KbToBytes();
         await Assert.That(result).IsEqualTo(expected);
     }
 
     [Test]
     public async Task KbToBytes_SingleToken_ReturnsZero()
     {
-        var result = ((ReadOnlySpan<char>)"novalue").KbToBytes();
+        var result = "novalue".KbToBytes();
         await Assert.That(result).IsEqualTo(0);
     }
 
@@ -25,7 +25,7 @@ public class SpanParsingExtensionsTests
     [Arguments("512", 512 * 1024L)]
     public async Task ParseSizeWithUnit_PlainNumber_TreatsAsKb(string input, long expected)
     {
-        var result = ((ReadOnlySpan<char>)input).ParseSizeWithUnit();
+        var result = input.ParseSizeWithUnit();
         await Assert.That(result).IsEqualTo(expected);
     }
 
@@ -36,7 +36,7 @@ public class SpanParsingExtensionsTests
     [Arguments("1T", 1L * 1024 * 1024 * 1024 * 1024)]
     public async Task ParseSizeWithUnit_WithSuffix_ConvertsCorrectly(string input, long expected)
     {
-        var result = ((ReadOnlySpan<char>)input).ParseSizeWithUnit();
+        var result = input.ParseSizeWithUnit();
         await Assert.That(result).IsEqualTo(expected);
     }
 
@@ -44,7 +44,7 @@ public class SpanParsingExtensionsTests
     [Arguments("8.5M", (long)(8.5 * 1024 * 1024))]
     public async Task ParseSizeWithUnit_FractionalValue_ConvertsCorrectly(string input, long expected)
     {
-        var result = ((ReadOnlySpan<char>)input).ParseSizeWithUnit();
+        var result = input.ParseSizeWithUnit();
         await Assert.That(result).IsEqualTo(expected);
     }
 
@@ -53,14 +53,14 @@ public class SpanParsingExtensionsTests
     [Arguments("   ")]
     public async Task ParseSizeWithUnit_EmptyOrWhitespace_ReturnsZero(string input)
     {
-        var result = ((ReadOnlySpan<char>)input).ParseSizeWithUnit();
+        var result = input.ParseSizeWithUnit();
         await Assert.That(result).IsEqualTo(0);
     }
 
     [Test]
     public async Task ParseSizeWithUnit_UnknownSuffix_ReturnsZero()
     {
-        var result = ((ReadOnlySpan<char>)"100X").ParseSizeWithUnit();
+        var result = "100X".ParseSizeWithUnit();
         await Assert.That(result).IsEqualTo(0);
     }
 
@@ -101,10 +101,10 @@ public class SpanParsingExtensionsTests
     [Arguments("12345", true)]
     [Arguments("0", true)]
     [Arguments("123a5", false)]
-    [Arguments("", true)]
+    [Arguments("", true)] // vacuous truth: empty span has no non-digit characters
     public async Task IsAllDigits_ValidatesCorrectly(string input, bool expected)
     {
-        var result = ((ReadOnlySpan<char>)input).IsAllDigits();
+        var result = input.IsAllDigits();
         await Assert.That(result).IsEqualTo(expected);
     }
 }

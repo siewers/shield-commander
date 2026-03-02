@@ -62,7 +62,8 @@ public class CpuStatQueryTests
     {
         var result = _query.Parse(RealOutput);
 
-        // cpu0: active = 54254+737+34157+846+8251+5917+0 = 104162, total = 104162+428750 = 532912
+        // cpu0: active = user(54254)+nice(737)+system(34157)+iowait(846)+irq(8251)+softirq(5917)+steal(0) = 104162
+        // total = active(104162)+idle(428750) = 532912
         await Assert.That(result.Cores[0].Active).IsEqualTo(104_162);
         await Assert.That(result.Cores[0].Total).IsEqualTo(532_912);
     }

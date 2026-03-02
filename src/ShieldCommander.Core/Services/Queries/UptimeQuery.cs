@@ -21,22 +21,16 @@ internal sealed class UptimeQuery : IAdbBatchQuery<DynamicSections>
         var commaIdx = rest.IndexOf(',');
 
         ReadOnlySpan<char> uptimeSpan;
-        if (commaIdx > 0)
+        var userIdx = rest.IndexOf(" user");
+        if (userIdx > 0)
         {
-            var afterFirst = rest[(commaIdx + 1)..];
-            var secondComma = afterFirst.IndexOf(',');
-            if (secondComma > 0 && afterFirst[..secondComma].Trim().Contains(':'))
-            {
-                uptimeSpan = rest[..commaIdx].Trim();
-            }
-            else if (secondComma > 0)
-            {
-                uptimeSpan = rest[..(commaIdx + 1 + secondComma)].Trim().TrimEnd(',');
-            }
-            else
-            {
-                uptimeSpan = rest[..commaIdx].Trim();
-            }
+            var beforeUser = rest[..userIdx];
+            var lastComma = beforeUser.LastIndexOf(',');
+            uptimeSpan = lastComma > 0 ? rest[..lastComma].Trim() : beforeUser.Trim();
+        }
+        else if (commaIdx > 0)
+        {
+            uptimeSpan = rest[..commaIdx].Trim();
         }
         else
         {

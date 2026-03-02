@@ -1,7 +1,22 @@
-#\!/bin/bash
+#!/bin/bash
 set -eu
 
+STABILITY="${1:-}"
+
 BASE="v$(date +%Y.%-m.%-d)"
+
+case "$STABILITY" in
+  alpha|beta|rc)
+    BASE="${BASE}-${STABILITY}"
+    ;;
+  ""|stable)
+    ;;
+  *)
+    echo "Usage: $0 [alpha|beta|rc|stable]"
+    exit 1
+    ;;
+esac
+
 TAG="$BASE"
 N=1
 

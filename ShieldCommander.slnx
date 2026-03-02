@@ -3,4 +3,7 @@
     <Project Path="src/ShieldCommander.Core/ShieldCommander.Core.csproj"/>
     <Project Path="src/ShieldCommander.UI/ShieldCommander.UI.csproj"/>
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="src/ShieldCommander.Core.Tests/ShieldCommander.Core.Tests.csproj"/>
+  </Folder>
 </Solution>

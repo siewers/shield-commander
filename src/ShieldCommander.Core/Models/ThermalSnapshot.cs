@@ -1,5 +1,5 @@
 namespace ShieldCommander.Core.Models;
 
-public sealed record ThermalSnapshot(
-    string? Summary,
-    List<(string Name, double Value)> Zones);
+public sealed record ThermalZone(string Name, double Value);
+
+public sealed record ThermalSnapshot(List<ThermalZone> Zones);

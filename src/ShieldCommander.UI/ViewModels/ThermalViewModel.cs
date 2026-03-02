@@ -117,7 +117,9 @@ public sealed partial class ThermalViewModel : ViewModelBase, IActivityMonitor
 
     public void Update(SystemSnapshot snapshot)
     {
-        Temperature = snapshot.Thermal.Summary;
+        Temperature = snapshot.Thermal.Zones.Count > 0
+            ? string.Join(", ", snapshot.Thermal.Zones.Select(z => FormattableString.Invariant($"{z.Name}: {z.Value:F1}°C")))
+            : null;
         AddTemperaturePoints(snapshot.Thermal);
     }
 
@@ -155,9 +157,9 @@ public sealed partial class ThermalViewModel : ViewModelBase, IActivityMonitor
 
         var now = DateTime.Now;
 
-        foreach (var (name, value) in temperatures)
+        foreach (var zone in temperatures)
         {
-            if (!_zoneState.TryGetValue(name, out var state))
+            if (!_zoneState.TryGetValue(zone.Name, out var state))
             {
                 var points = new ObservableCollection<DateTimePoint>();
                 var colorIndex = ThermalSeries.Count % ZoneColors.Length;
@@ -171,18 +173,18 @@ public sealed partial class ThermalViewModel : ViewModelBase, IActivityMonitor
                     GeometryStroke = null,
                     Stroke = new SolidColorPaint(color, 1.5f),
                     LineSmoothness = 0,
-                    Name = name,
+                    Name = zone.Name,
                 });
 
-                var legend = new ChartLegendItem { Name = name, Color = ChartHelper.ToAvaloniaColor(color) };
+                var legend = new ChartLegendItem { Name = zone.Name, Color = ChartHelper.ToAvaloniaColor(color) };
                 ThermalLegend.Add(legend);
                 state = (points, legend);
-                _zoneState[name] = state;
+                _zoneState[zone.Name] = state;
             }
 
-            state.Points.Add(new DateTimePoint(now, value));
+            state.Points.Add(new DateTimePoint(now, zone.Value));
             ChartHelper.TrimOldPoints(state.Points, now, _chartWindow, _miniWindow);
-            state.Legend.Value = value;
+            state.Legend.Value = zone.Value;
         }
 
         ChartHelper.UpdateAxisLimits(_thermalXAxis, now, _chartWindow, _miniWindow);

@@ -11,8 +11,7 @@ internal sealed class ThermalQuery : IAdbBatchQuery<DynamicSections>
 
     public ThermalSnapshot Parse(ReadOnlySpan<char> output)
     {
-        float maxTemp = 0;
-        var temps = new List<(string Name, float Value)>();
+        var zones = new List<ThermalZone>();
         var inTemps = false;
 
         foreach (var line in output.EnumerateLines())
@@ -37,24 +36,11 @@ internal sealed class ThermalQuery : IAdbBatchQuery<DynamicSections>
             trimmed.ExtractDumpsysFields(out var tName, out var tValue);
             if (float.TryParse(tValue, CultureInfo.InvariantCulture, out var temp))
             {
-                temps.Add((tName.ToString(), temp));
-                if (temp > maxTemp)
-                {
-                    maxTemp = temp;
-                }
+                zones.Add(new ThermalZone(tName.ToString(), temp));
             }
         }
 
-        string? summary = null;
-        List<(string Name, double Value)> zones = [];
-
-        if (temps.Count > 0)
-        {
-            summary = string.Join(", ", temps.Select(t => FormattableString.Invariant($"{t.Name}: {t.Value:F1}°C")));
-            zones = temps.Select(t => (t.Name, (double)t.Value)).ToList();
-        }
-
-        return new ThermalSnapshot(summary, zones);
+        return new ThermalSnapshot(zones);
     }
 
     public void Apply(ReadOnlySpan<char> output, DynamicSections target)

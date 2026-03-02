@@ -16,7 +16,7 @@ internal sealed class PackageInfoQuery(string packageName) : IAdbQuery<Installed
 
     public InstalledPackage Parse(string output)
     {
-        var sections = output.Split("---", 2, StringSplitOptions.None);
+        var sections = output.Split("---", 2);
         var package = PackageParsing.ParseDumpsys(packageName, sections[0]);
         var codeSize = sections.Length > 1 ? PackageParsing.ParseSize(sections[1]) : null;
 

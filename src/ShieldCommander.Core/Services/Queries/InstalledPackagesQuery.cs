@@ -9,12 +9,7 @@ internal sealed class InstalledPackagesQuery : IAdbQuery<List<InstalledPackage>>
 
     public async Task<List<InstalledPackage>> ExecuteAsync(AdbRunner runner)
     {
-        var cmd = "for p in $(pm list packages -3 | sed 's/package://g'); do "
-                + $"echo '{PackageDelimiter}'\"$p\"; "
-                + "dumpsys package $p; "
-                + $"echo '{SizeDelimiter}'; "
-                + "stat -c %s $(pm path $p | sed 's/package://g') 2>/dev/null; "
-                + "done";
+        var cmd = "for p in $(pm list packages -3 | sed 's/package://g'); do " + $"echo '{PackageDelimiter}'\"$p\"; " + "dumpsys package $p; " + $"echo '{SizeDelimiter}'; " + "stat -c %s $(pm path $p | sed 's/package://g') 2>/dev/null; " + "done";
 
         var output = await runner.RunShellAsync(cmd);
 
@@ -40,7 +35,7 @@ internal sealed class InstalledPackagesQuery : IAdbQuery<List<InstalledPackage>>
                 continue;
             }
 
-            var sizeSplit = block.Split(SizeDelimiter, 2, StringSplitOptions.None);
+            var sizeSplit = block.Split(SizeDelimiter, count: 2);
             var package = PackageParsing.ParseDumpsys(packageName, sizeSplit[0]);
             var codeSize = sizeSplit.Length > 1 ? PackageParsing.ParseSize(sizeSplit[1]) : null;
 

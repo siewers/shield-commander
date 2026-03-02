@@ -2,7 +2,7 @@ using ShieldCommander.Core.Models;
 
 namespace ShieldCommander.Core.Services.Queries;
 
-internal sealed class DiskStatsQuery : IAdbShellQuery<DiskSnapshot>
+internal sealed class DiskStatsQuery : IAdbBatchQuery<DynamicSections>
 {
     public string Name => nameof(DynamicSections.Disk);
 

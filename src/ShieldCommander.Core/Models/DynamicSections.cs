@@ -19,9 +19,9 @@ internal sealed class DynamicSections
 
     public DiskSnapshot Disk { get; internal set; } = null!;
 
-    internal static AdbCommandCollection CreateCommands()
+    internal static AdbBatchQueryCollection<DynamicSections> CreateCommands()
     {
-        var commands = new AdbCommandCollection
+        var commands = new AdbBatchQueryCollection<DynamicSections>
         {
             new MemInfoQuery(),
             new DiskFreeQuery(),

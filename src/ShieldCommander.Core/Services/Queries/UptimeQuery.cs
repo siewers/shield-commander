@@ -2,7 +2,7 @@ using ShieldCommander.Core.Models;
 
 namespace ShieldCommander.Core.Services.Queries;
 
-internal sealed class UptimeQuery : IAdbShellQuery<UptimeInfo?>
+internal sealed class UptimeQuery : IAdbBatchQuery<DynamicSections>
 {
     public string Name => nameof(DynamicSections.Uptime);
 

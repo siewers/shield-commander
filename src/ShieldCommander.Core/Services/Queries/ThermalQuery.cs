@@ -3,7 +3,7 @@ using ShieldCommander.Core.Models;
 
 namespace ShieldCommander.Core.Services.Queries;
 
-internal sealed class ThermalQuery : IAdbShellQuery<ThermalSnapshot>
+internal sealed class ThermalQuery : IAdbBatchQuery<DynamicSections>
 {
     public string Name => nameof(DynamicSections.Thermal);
 

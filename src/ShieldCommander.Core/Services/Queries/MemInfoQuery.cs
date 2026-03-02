@@ -2,7 +2,7 @@ using ShieldCommander.Core.Models;
 
 namespace ShieldCommander.Core.Services.Queries;
 
-internal sealed class MemInfoQuery : IAdbShellQuery<MemoryInfo>
+internal sealed class MemInfoQuery : IAdbBatchQuery<DynamicSections>
 {
     public string Name => nameof(DynamicSections.Memory);
 

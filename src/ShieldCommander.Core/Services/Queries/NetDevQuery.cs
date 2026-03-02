@@ -2,7 +2,7 @@ using ShieldCommander.Core.Models;
 
 namespace ShieldCommander.Core.Services.Queries;
 
-internal sealed class NetDevQuery : IAdbShellQuery<NetworkSnapshot>
+internal sealed class NetDevQuery : IAdbBatchQuery<DynamicSections>
 {
     public string Name => nameof(DynamicSections.Network);
 

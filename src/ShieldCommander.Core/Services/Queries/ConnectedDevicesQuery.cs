@@ -7,14 +7,15 @@ internal sealed class ConnectedDevicesQuery : IAdbQuery<List<ShieldDevice>>
     public async Task<List<ShieldDevice>> ExecuteAsync(AdbRunner runner)
     {
         var result = await runner.RunAdbAsync("devices -l");
+
+        return result.Success ? Parse(result.Output) : [];
+    }
+
+    public List<ShieldDevice> Parse(string output)
+    {
         var devices = new List<ShieldDevice>();
 
-        if (!result.Success)
-        {
-            return devices;
-        }
-
-        foreach (var line in result.Output.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        foreach (var line in output.Split('\n', StringSplitOptions.RemoveEmptyEntries))
         {
             if (line.StartsWith("List of") || line.StartsWith("*"))
             {

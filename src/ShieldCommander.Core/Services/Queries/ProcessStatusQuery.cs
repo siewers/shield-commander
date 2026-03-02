@@ -8,15 +8,15 @@ internal sealed class ProcessStatusQuery(int pid, string name) : IAdbQuery<Proce
     {
         var result = await runner.RunAdbAsync($"shell cat /proc/{pid}/status");
 
-        if (!result.Success)
-        {
-            return new ProcessDetails(pid, name);
-        }
+        return result.Success ? Parse(result.Output) : new ProcessDetails(pid, name);
+    }
 
+    public ProcessDetails Parse(string output)
+    {
         string? state = null, uid = null, threads = null, ppid = null;
         long? vmRss = null;
 
-        foreach (var line in result.Output.Split('\n'))
+        foreach (var line in output.Split('\n'))
         {
             var trimmed = line.Trim();
 

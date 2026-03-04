@@ -74,16 +74,13 @@ public sealed class DeviceConnectionService(
 
     public IReadOnlyList<SavedDevice> GetSavedDevices() => settings.SavedDevices;
 
-    public void AddOrUpdateDevice(string ipAddress, string? deviceName) =>
-        settings.AddOrUpdateDevice(ipAddress, deviceName);
+    public void AddOrUpdateDevice(string ipAddress, string? deviceName) => settings.AddOrUpdateDevice(ipAddress, deviceName);
 
     public void RemoveDevice(string ipAddress) => settings.RemoveDevice(ipAddress);
 
-    public void SetAutoConnect(string ipAddress, bool autoConnect) =>
-        settings.SetAutoConnect(ipAddress, autoConnect);
+    public void SetAutoConnect(string ipAddress, bool autoConnect) => settings.SetAutoConnect(ipAddress, autoConnect);
 
-    public SavedDevice? GetAutoConnectDevice() =>
-        settings.SavedDevices.FirstOrDefault(d => d.AutoConnect);
+    public SavedDevice? GetAutoConnectDevice() => settings.SavedDevices.FirstOrDefault(d => d.AutoConnect);
 
     public List<DeviceSuggestion> GetSavedSuggestions()
     {
@@ -98,13 +95,11 @@ public sealed class DeviceConnectionService(
             .ToList();
     }
 
-    public async Task<List<DeviceSuggestion>> ScanForSuggestionsAsync(
-        IReadOnlySet<string> existingIps,
-        CancellationToken ct = default)
+    public async Task<List<DeviceSuggestion>> ScanForSuggestionsAsync(IReadOnlySet<string> existingIps, CancellationToken ct = default)
     {
         try
         {
-            var devices = await discoveryService.ScanAsync(ct: ct);
+            var devices = await discoveryService.ScanAsync(cancellationToken: ct);
             return devices
                 .Where(d => !existingIps.Contains(d.IpAddress))
                 .Select(d => new DeviceSuggestion

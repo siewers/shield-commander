@@ -4,5 +4,5 @@ namespace ShieldCommander.Core.Services;
 
 public interface IDeviceDiscoveryService
 {
-    Task<List<DiscoveredDevice>> ScanAsync(TimeSpan? scanTime = null, CancellationToken ct = default);
+    Task<IReadOnlyCollection<DiscoveredDevice>> ScanAsync(CancellationToken cancellationToken);
 }

@@ -9,8 +9,6 @@ internal sealed class DynamicSections
 
     public DiskFreeInfo? DiskFree { get; internal set; }
 
-    public UptimeInfo? Uptime { get; internal set; }
-
     public ThermalSnapshot Thermal { get; internal set; } = null!;
 
     public CpuSnapshot Cpu { get; internal set; } = null!;
@@ -25,7 +23,6 @@ internal sealed class DynamicSections
         {
             new MemInfoQuery(),
             new DiskFreeQuery(),
-            new UptimeQuery(),
             new ThermalQuery(),
             new CpuStatQuery(),
             new NetDevQuery(),

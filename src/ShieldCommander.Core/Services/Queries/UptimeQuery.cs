@@ -2,13 +2,16 @@ using ShieldCommander.Core.Models;
 
 namespace ShieldCommander.Core.Services.Queries;
 
-internal sealed class UptimeQuery : IAdbBatchQuery<DynamicSections>
+internal sealed class UptimeQuery : IAdbBatchQuery<DeviceInfo>
 {
-    public string Name => nameof(DynamicSections.Uptime);
+    public string Name => nameof(DeviceInfo.Uptime);
 
     public string CommandText => "uptime";
 
-    public UptimeInfo? Parse(ReadOnlySpan<char> output)
+    public void Apply(ReadOnlySpan<char> output, DeviceInfo target)
+        => target.Uptime = Parse(output);
+
+    private static TimeSpan? Parse(ReadOnlySpan<char> output)
     {
         var uptimeOutput = output.Trim();
         var upIdx = uptimeOutput.IndexOf("up ");
@@ -37,11 +40,8 @@ internal sealed class UptimeQuery : IAdbBatchQuery<DynamicSections>
             uptimeSpan = rest.Trim();
         }
 
-        return new UptimeInfo(ParseDuration(uptimeSpan));
+        return ParseDuration(uptimeSpan);
     }
-
-    public void Apply(ReadOnlySpan<char> output, DynamicSections target)
-        => target.Uptime = Parse(output);
 
     private static TimeSpan ParseDuration(ReadOnlySpan<char> span)
     {

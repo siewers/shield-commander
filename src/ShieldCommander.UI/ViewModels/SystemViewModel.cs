@@ -21,6 +21,12 @@ public sealed partial class SystemViewModel : ViewModelBase
     private string? _buildId;
 
     [ObservableProperty]
+    private string? _hostname;
+
+    [ObservableProperty]
+    private string? _ipAddress;
+
+    [ObservableProperty]
     private bool _isBusy;
 
     [ObservableProperty]
@@ -39,6 +45,9 @@ public sealed partial class SystemViewModel : ViewModelBase
     [ObservableProperty]
     private long? _totalRam;
 
+    [ObservableProperty]
+    private TimeSpan? _uptime;
+
     public SystemViewModel(IAdbService adbService)
     {
         _adbService = adbService;
@@ -51,8 +60,9 @@ public sealed partial class SystemViewModel : ViewModelBase
 
     public void Clear()
     {
-        Model = Manufacturer = Architecture = AndroidVersion = ApiLevel = BuildId = null;
+        Model = Manufacturer = Architecture = AndroidVersion = ApiLevel = BuildId = Hostname = IpAddress = null;
         TotalRam = StorageTotal = null;
+        Uptime = null;
         StatusText = string.Empty;
     }
 
@@ -79,6 +89,9 @@ public sealed partial class SystemViewModel : ViewModelBase
             BuildId = info.BuildId;
             TotalRam = info.RamTotal;
             StorageTotal = info.StorageTotal;
+            Uptime = info.Uptime;
+            Hostname = info.Hostname;
+            IpAddress = info.IpAddress;
 
             StatusText = string.Empty;
         }

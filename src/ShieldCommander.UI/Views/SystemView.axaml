@@ -18,27 +18,37 @@
             <TextBlock Text="Device" FontSize="16" FontWeight="SemiBold" />
             <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
                     CornerRadius="4" Padding="12">
-                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Model" FontWeight="SemiBold" Margin="0,0,24,4" />
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Model, FallbackValue=—}" Margin="0,0,0,4" />
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Device Name" FontWeight="SemiBold" Margin="0,0,24,4" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Hostname, FallbackValue=—}" Margin="0,0,0,4" />
 
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Manufacturer" FontWeight="SemiBold" Margin="0,0,24,4" />
-                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Manufacturer, FallbackValue=—}"
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Model" FontWeight="SemiBold" Margin="0,0,24,4" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Model, FallbackValue=—}" Margin="0,0,0,4" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Manufacturer" FontWeight="SemiBold" Margin="0,0,24,4" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Manufacturer, FallbackValue=—}"
                                Margin="0,0,0,4" />
 
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Architecture" FontWeight="SemiBold" Margin="0,0,24,4" />
-                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Architecture, FallbackValue=—}"
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Architecture" FontWeight="SemiBold" Margin="0,0,24,4" />
+                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Architecture, FallbackValue=—}"
                                Margin="0,0,0,4" />
 
-                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Android" FontWeight="SemiBold" Margin="0,0,24,4" />
-                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding AndroidVersion, FallbackValue=—}"
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Android" FontWeight="SemiBold" Margin="0,0,24,4" />
+                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding AndroidVersion, FallbackValue=—}"
                                Margin="0,0,0,4" />
 
-                    <TextBlock Grid.Row="4" Grid.Column="0" Text="API Level" FontWeight="SemiBold" Margin="0,0,24,4" />
-                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ApiLevel, FallbackValue=—}" Margin="0,0,0,4" />
+                    <TextBlock Grid.Row="5" Grid.Column="0" Text="API Level" FontWeight="SemiBold" Margin="0,0,24,4" />
+                    <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding ApiLevel, FallbackValue=—}" Margin="0,0,0,4" />
 
-                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Build" FontWeight="SemiBold" Margin="0,0,24,0" />
-                    <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding BuildId, FallbackValue=—}" />
+                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Build" FontWeight="SemiBold" Margin="0,0,24,4" />
+                    <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding BuildId, FallbackValue=—}" Margin="0,0,0,4" />
+
+                    <TextBlock Grid.Row="7" Grid.Column="0" Text="IP Address" FontWeight="SemiBold" Margin="0,0,24,4" />
+                    <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding IpAddress, FallbackValue=—}" Margin="0,0,0,4" />
+
+                    <TextBlock Grid.Row="8" Grid.Column="0" Text="Uptime" FontWeight="SemiBold" Margin="0,0,24,0" />
+                    <TextBlock Grid.Row="8" Grid.Column="1"
+                               Text="{Binding Uptime, Converter={x:Static converters:UptimeFormatConverter.Instance}, TargetNullValue=—}" />
                 </Grid>
             </Border>
 

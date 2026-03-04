@@ -78,6 +78,8 @@ public sealed class App : Application
             services.AddSingleton<IAdbRunner, AdbRunner>();
             services.AddSingleton<IAdbService, AdbService>();
             services.AddSingleton<IDeviceDiscoveryService, DeviceDiscoveryService>();
+            services.AddSingleton<IAdbConfigService, AdbConfigService>();
+            services.AddSingleton<IDeviceConnectionService, DeviceConnectionService>();
             services.AddSingleton<MenuHelper>();
             services.AddTransient<MainWindowViewModel>();
 

@@ -15,11 +15,12 @@ public sealed partial class DeviceView : UserControl
         DataContextChanged += OnDataContextChanged;
     }
 
-    private void OnDataContextChanged(object? sender, EventArgs e)
+    private async void OnDataContextChanged(object? sender, EventArgs e)
     {
         if (DataContext is DeviceViewModel vm)
         {
             vm.ShowAuthorizationDialog = ShowAuthorizationDialogAsync;
+            await vm.InitializeAsync();
         }
     }
 

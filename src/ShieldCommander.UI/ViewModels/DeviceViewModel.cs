@@ -9,11 +9,8 @@ namespace ShieldCommander.UI.ViewModels;
 
 public sealed partial class DeviceViewModel : ViewModelBase
 {
-    private readonly IAdbService _adbService;
-    private readonly IAdbPathProvider _pathProvider;
-    private readonly IAdbPathResolver _pathResolver;
-    private readonly IDeviceDiscoveryService _discoveryService;
-    private readonly ISettingsService _settings;
+    private readonly IAdbConfigService _adbConfig;
+    private readonly IDeviceConnectionService _connectionService;
 
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsAdbAvailable))]
     private string _adbPath;
@@ -36,26 +33,24 @@ public sealed partial class DeviceViewModel : ViewModelBase
     [ObservableProperty]
     private string _statusText = "Not connected";
 
-    public DeviceViewModel(IAdbService adbService, IAdbPathProvider pathProvider, IAdbPathResolver pathResolver, ISettingsService settings, IDeviceDiscoveryService discoveryService)
+    public DeviceViewModel(IDeviceConnectionService connectionService, IAdbConfigService adbConfig)
     {
-        _adbService = adbService;
-        _pathProvider = pathProvider;
-        _pathResolver = pathResolver;
-        _settings = settings;
-        _discoveryService = discoveryService;
-
-        var resolved = settings.AdbPath ?? pathResolver.FindAdb();
-        pathProvider.CurrentPath = resolved;
-        _adbPath = resolved;
+        _connectionService = connectionService;
+        _adbConfig = adbConfig;
+        _adbPath = adbConfig.ResolveAdbPath();
 
         LoadSavedDevices();
         RefreshSuggestions();
-        _ = ScanForSuggestionsAsync();
     }
 
-    public string AdbPathPlaceholder => _pathResolver.FindAdb();
+    public async Task InitializeAsync()
+    {
+        await ScanForSuggestionsAsync();
+    }
 
-    public bool IsAdbAvailable => _pathResolver.IsAvailable(_pathProvider.CurrentPath);
+    public string AdbPathPlaceholder => _adbConfig.ResolveAdbPath();
+
+    public bool IsAdbAvailable => _adbConfig.IsAdbAvailable(AdbPath);
 
     public ObservableCollection<ShieldDevice> ConnectedDevices { get; } = [];
 
@@ -71,14 +66,13 @@ public sealed partial class DeviceViewModel : ViewModelBase
     partial void OnAdbPathChanged(string value)
     {
         var path = string.IsNullOrWhiteSpace(value) ? null : value;
-        _settings.AdbPath = path;
-        _pathProvider.CurrentPath = path ?? _pathResolver.FindAdb();
+        _adbConfig.SetAdbPath(path);
     }
 
     private void LoadSavedDevices()
     {
         SavedDevices.Clear();
-        foreach (var device in _settings.SavedDevices.OrderByDescending(d => d.LastConnected))
+        foreach (var device in _connectionService.GetSavedDevices().OrderByDescending(d => d.LastConnected))
         {
             SavedDevices.Add(device);
         }
@@ -92,102 +86,66 @@ public sealed partial class DeviceViewModel : ViewModelBase
         IsBusy = true;
         StatusText = $"Connecting to {IpAddress}...";
 
-        // Try initial connect — may fail if device is off, or succeed but be unauthorized
-        await _adbService.ConnectAsync(IpAddress);
+        var result = await _connectionService.ConnectAsync(IpAddress);
 
-        // Check if already fully authorized
-        var devices = await _adbService.GetConnectedDevicesAsync();
-        if (devices.Any(d => d.IpAddress.StartsWith(IpAddress)))
+        if (result.Status == ConnectionStatus.Connected)
         {
-            await OnConnectedAsync(IpAddress);
+            OnConnected(IpAddress, result.DeviceName);
             IsBusy = false;
             return;
         }
 
-        // Not yet connected/authorized — show dialog and poll
-        if (ShowAuthorizationDialog == null)
+        if (result.Status == ConnectionStatus.AwaitingAuthorization && ShowAuthorizationDialog != null)
         {
-            StatusText = "Failed to connect";
-            IsBusy = false;
-            return;
-        }
+            using var cts = new CancellationTokenSource();
+            var dialogTask = ShowAuthorizationDialog(cts.Token);
+            var pollTask = _connectionService.WaitForAuthorizationAsync(IpAddress, cts.Token);
 
-        using var cts = new CancellationTokenSource();
-        var dialogTask = ShowAuthorizationDialog(cts.Token);
-        var pollTask = PollForConnectionAsync(IpAddress, cts.Token);
+            var completed = await Task.WhenAny(dialogTask, pollTask);
 
-        var completed = await Task.WhenAny(dialogTask, pollTask);
-
-        if (completed == pollTask && await pollTask)
-        {
-            await cts.CancelAsync();
-            await OnConnectedAsync(IpAddress);
+            if (completed == pollTask && await pollTask)
+            {
+                await cts.CancelAsync();
+                await RefreshDevicesAsync();
+                var device = ConnectedDevices.FirstOrDefault(d => d.IpAddress.StartsWith(IpAddress));
+                OnConnected(IpAddress, device?.DeviceName);
+            }
+            else
+            {
+                await cts.CancelAsync();
+                StatusText = "Connection cancelled";
+                IsConnected = false;
+                await _connectionService.DisconnectAsync(IpAddress);
+            }
         }
         else
         {
-            await cts.CancelAsync();
-            StatusText = "Connection cancelled";
-            IsConnected = false;
-            await _adbService.DisconnectAsync(IpAddress);
+            StatusText = "Failed to connect";
         }
 
         IsBusy = false;
     }
 
-    private async Task OnConnectedAsync(string ipAddress)
+    private void OnConnected(string ipAddress, string? deviceName)
     {
         StatusText = $"Connected to {ipAddress}";
         IsConnected = true;
-        await RefreshDevicesAsync();
-
-        var device = ConnectedDevices.FirstOrDefault(d => d.IpAddress.StartsWith(ipAddress));
-        ConnectedDeviceName = device?.DeviceName ?? "";
-        _settings.AddOrUpdateDevice(ipAddress, device?.DeviceName);
+        ConnectedDeviceName = deviceName ?? "";
+        _ = RefreshDevicesAsync();
         LoadSavedDevices();
         RefreshSuggestions();
-    }
-
-    private async Task<bool> PollForConnectionAsync(string ipAddress, CancellationToken ct)
-    {
-        try
-        {
-            // Poll for up to 2 minutes (device may be off and need time to boot)
-            for (var i = 0; i < 60; i++)
-            {
-                await Task.Delay(2000, ct);
-
-                // Only retry adb connect every 10s (5 iterations) to handle the
-                // "device was off" case without spamming auth prompts on the TV
-                if (i > 0 && i % 5 == 0)
-                {
-                    await _adbService.ConnectAsync(ipAddress);
-                }
-
-                var devices = await _adbService.GetConnectedDevicesAsync();
-                if (devices.Any(d => d.IpAddress.StartsWith(ipAddress)))
-                {
-                    return true;
-                }
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // User cancelled
-        }
-
-        return false;
     }
 
     [RelayCommand]
     private void ToggleAutoConnect(SavedDevice device)
     {
-        _settings.SetAutoConnect(device.IpAddress, !device.AutoConnect);
+        _connectionService.SetAutoConnect(device.IpAddress, !device.AutoConnect);
         LoadSavedDevices();
     }
 
     public async Task<bool> AutoConnectAsync()
     {
-        var device = _settings.SavedDevices.FirstOrDefault(d => d.AutoConnect);
+        var device = _connectionService.GetAutoConnectDevice();
         if (device == null)
         {
             return false;
@@ -208,47 +166,27 @@ public sealed partial class DeviceViewModel : ViewModelBase
     [RelayCommand]
     private void RemoveSavedDevice(SavedDevice device)
     {
-        _settings.RemoveDevice(device.IpAddress);
+        _connectionService.RemoveDevice(device.IpAddress);
         LoadSavedDevices();
     }
 
     private void RefreshSuggestions()
     {
         DeviceSuggestions.Clear();
-        foreach (var saved in _settings.SavedDevices.OrderByDescending(d => d.LastConnected))
+        foreach (var suggestion in _connectionService.GetSavedSuggestions())
         {
-            DeviceSuggestions.Add(new DeviceSuggestion
-            {
-                IpAddress = saved.IpAddress,
-                DisplayName = saved.DeviceName,
-                Source = "Saved",
-            });
+            DeviceSuggestions.Add(suggestion);
         }
     }
 
     private async Task ScanForSuggestionsAsync()
     {
         IsScanning = true;
-        try
+        var existingIps = DeviceSuggestions.Select(s => s.IpAddress).ToHashSet();
+        var discovered = await _connectionService.ScanForSuggestionsAsync(existingIps);
+        foreach (var suggestion in discovered)
         {
-            var devices = await _discoveryService.ScanAsync();
-            var existingIps = DeviceSuggestions.Select(s => s.IpAddress).ToHashSet();
-            foreach (var device in devices)
-            {
-                if (!existingIps.Contains(device.IpAddress))
-                {
-                    DeviceSuggestions.Add(new DeviceSuggestion
-                    {
-                        IpAddress = device.IpAddress,
-                        DisplayName = device.DisplayName,
-                        Source = "Discovered",
-                    });
-                }
-            }
-        }
-        catch
-        {
-            // Scan failure is non-critical for suggestions
+            DeviceSuggestions.Add(suggestion);
         }
 
         IsScanning = false;
@@ -265,7 +203,7 @@ public sealed partial class DeviceViewModel : ViewModelBase
     private async Task DisconnectAsync()
     {
         IsBusy = true;
-        await _adbService.DisconnectAllAsync();
+        await _connectionService.DisconnectAllAsync();
         IsConnected = false;
         ConnectedDeviceName = string.Empty;
         StatusText = "Disconnected";
@@ -276,7 +214,7 @@ public sealed partial class DeviceViewModel : ViewModelBase
     [RelayCommand]
     private async Task RefreshDevicesAsync()
     {
-        var devices = await _adbService.GetConnectedDevicesAsync();
+        var devices = await _connectionService.GetConnectedDevicesAsync();
         ConnectedDevices.Clear();
         foreach (var device in devices)
         {

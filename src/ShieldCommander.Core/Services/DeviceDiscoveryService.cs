@@ -43,7 +43,7 @@ public sealed class DeviceDiscoveryService : IDeviceDiscoveryService
                 }
             }
 
-            if (!devices.Any(d => d.IpAddress == ip))
+            if (devices.All(d => d.IpAddress != ip))
             {
                 devices.Add(new DiscoveredDevice(ip, name));
             }

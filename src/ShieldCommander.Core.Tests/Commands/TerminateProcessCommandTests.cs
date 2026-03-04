@@ -1,36 +1,43 @@
-using NSubstitute;
+using Imposter.Abstractions;
 using ShieldCommander.Core.Services;
 using ShieldCommander.Core.Services.Commands;
+
+[assembly: GenerateImposter(typeof(IAdbRunner))]
 
 namespace ShieldCommander.Core.Tests.Commands;
 
 public class TerminateProcessCommandTests
 {
-    private readonly IAdbRunner _runner = Substitute.For<IAdbRunner>();
-
     [Test]
     public async Task ForceStop_Succeeds_DoesNotFallBackToKill()
     {
-        _runner.RunShellAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns("EXIT:0");
+        var imposter = IAdbRunner.Imposter();
+        imposter.RunShellAsync(Arg<string>.Any(), Arg<CancellationToken>.Any())
+                .Returns(Task.FromResult("EXIT:0"));
+
+        var runner = imposter.Instance();
 
         var command = new TerminateProcessCommand(123, "com.example.app");
-        var result = await command.ExecuteAsync(_runner);
+        var result = await command.ExecuteAsync(runner);
 
         await Assert.That(result.Success).IsTrue();
-        await _runner.Received(1).RunShellAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        imposter.RunShellAsync(Arg<string>.Any(), Arg<CancellationToken>.Any())
+                .Called(Count.Once());
     }
 
     [Test]
     public async Task ForceStop_Fails_FallsBackToKill_Succeeds()
     {
-        _runner.RunShellAsync(Arg.Is<string>(s => s.Contains("force-stop")), Arg.Any<CancellationToken>())
-            .Returns("EXIT:1");
-        _runner.RunShellAsync(Arg.Is<string>(s => s.Contains("kill -9")), Arg.Any<CancellationToken>())
-            .Returns("EXIT:0");
+        var imposter = IAdbRunner.Imposter();
+        imposter.RunShellAsync(Arg<string>.Is(s => s.Contains("force-stop")), Arg<CancellationToken>.Any())
+                .Returns(Task.FromResult("EXIT:1"));
 
+        imposter.RunShellAsync(Arg<string>.Is(s => s.Contains("kill -9")), Arg<CancellationToken>.Any())
+                .Returns(Task.FromResult("EXIT:0"));
+
+        var runner = imposter.Instance();
         var command = new TerminateProcessCommand(123, "com.example.app");
-        var result = await command.ExecuteAsync(_runner);
+        var result = await command.ExecuteAsync(runner);
 
         await Assert.That(result.Success).IsTrue();
     }
@@ -38,13 +45,17 @@ public class TerminateProcessCommandTests
     [Test]
     public async Task ForceStop_Fails_Kill_Fails_NotSuccess()
     {
-        _runner.RunShellAsync(Arg.Is<string>(s => s.Contains("force-stop")), Arg.Any<CancellationToken>())
-            .Returns("EXIT:1");
-        _runner.RunShellAsync(Arg.Is<string>(s => s.Contains("kill -9")), Arg.Any<CancellationToken>())
-            .Returns("EXIT:1");
+        var imposter = IAdbRunner.Imposter();
+        imposter.RunShellAsync(Arg<string>.Is(s => s.Contains("force-stop")), Arg<CancellationToken>.Any())
+                .Returns(Task.FromResult("EXIT:1"));
+
+        imposter.RunShellAsync(Arg<string>.Is(s => s.Contains("kill -9")), Arg<CancellationToken>.Any())
+                .Returns(Task.FromResult("EXIT:1"));
+
+        var runner = imposter.Instance();
 
         var command = new TerminateProcessCommand(123, "com.example.app");
-        var result = await command.ExecuteAsync(_runner);
+        var result = await command.ExecuteAsync(runner);
 
         await Assert.That(result.Success).IsFalse();
     }
@@ -52,15 +63,20 @@ public class TerminateProcessCommandTests
     [Test]
     public async Task ForceStop_OutputContainsError_FallsBackToKill()
     {
-        _runner.RunShellAsync(Arg.Is<string>(s => s.Contains("force-stop")), Arg.Any<CancellationToken>())
-            .Returns("Error\nEXIT:0");
-        _runner.RunShellAsync(Arg.Is<string>(s => s.Contains("kill -9")), Arg.Any<CancellationToken>())
-            .Returns("EXIT:0");
+        var imposter = IAdbRunner.Imposter();
+        imposter.RunShellAsync(Arg<string>.Is(s => s.Contains("force-stop")), Arg<CancellationToken>.Any())
+                .Returns(Task.FromResult("Error\nEXIT:0"));
+
+        imposter.RunShellAsync(Arg<string>.Is(s => s.Contains("kill -9")), Arg<CancellationToken>.Any())
+                .Returns(Task.FromResult("EXIT:0"));
+
+        var runner = imposter.Instance();
 
         var command = new TerminateProcessCommand(123, "com.example.app");
-        var result = await command.ExecuteAsync(_runner);
+        var result = await command.ExecuteAsync(runner);
 
         await Assert.That(result.Success).IsTrue();
-        await _runner.Received(2).RunShellAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        imposter.RunShellAsync(Arg<string>.Any(), Arg<CancellationToken>.Any())
+                .Called(Count.Twice());
     }
 }

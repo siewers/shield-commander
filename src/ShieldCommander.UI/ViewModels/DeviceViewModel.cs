@@ -9,17 +9,16 @@ namespace ShieldCommander.UI.ViewModels;
 
 public sealed partial class DeviceViewModel : ViewModelBase
 {
-    private readonly IAdbConfigService _adbConfig;
     private readonly IDeviceConnectionService _connectionService;
-
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsAdbAvailable))]
-    private string _adbPath;
 
     [ObservableProperty]
     private string _connectedDeviceName = string.Empty;
 
     [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(ConnectCommand))]
     private string _ipAddress = string.Empty;
+
+    [ObservableProperty]
+    private bool _isAdbAvailable;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -33,11 +32,10 @@ public sealed partial class DeviceViewModel : ViewModelBase
     [ObservableProperty]
     private string _statusText = "Not connected";
 
-    public DeviceViewModel(IDeviceConnectionService connectionService, IAdbConfigService adbConfig)
+    public DeviceViewModel(IDeviceConnectionService connectionService)
     {
         _connectionService = connectionService;
-        _adbConfig = adbConfig;
-        _adbPath = adbConfig.ResolveAdbPath();
+        _isAdbAvailable = connectionService.IsAdbAvailable();
 
         LoadSavedDevices();
         RefreshSuggestions();
@@ -48,9 +46,10 @@ public sealed partial class DeviceViewModel : ViewModelBase
         await ScanForSuggestionsAsync();
     }
 
-    public string AdbPathPlaceholder => _adbConfig.ResolveAdbPath();
-
-    public bool IsAdbAvailable => _adbConfig.IsAdbAvailable(AdbPath);
+    public void RefreshAdbStatus()
+    {
+        IsAdbAvailable = _connectionService.IsAdbAvailable();
+    }
 
     public ObservableCollection<ShieldDevice> ConnectedDevices { get; } = [];
 
@@ -62,12 +61,6 @@ public sealed partial class DeviceViewModel : ViewModelBase
     /// The func receives a CancellationToken (cancelled when the user clicks Cancel)
     /// and should return only after the dialog is closed.
     public Func<CancellationToken, Task>? ShowAuthorizationDialog { get; set; }
-
-    partial void OnAdbPathChanged(string value)
-    {
-        var path = string.IsNullOrWhiteSpace(value) ? null : value;
-        _adbConfig.SetAdbPath(path);
-    }
 
     private void LoadSavedDevices()
     {

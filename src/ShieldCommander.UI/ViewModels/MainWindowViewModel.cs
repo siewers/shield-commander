@@ -20,10 +20,10 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string _windowTitle = "Shield Commander — Disconnected";
 
-    public MainWindowViewModel(IAdbService adbService, IDeviceConnectionService connectionService, IAdbConfigService adbConfig)
+    public MainWindowViewModel(IAdbService adbService, IDeviceConnectionService connectionService)
     {
         _adbService = adbService;
-        DevicePage = new DeviceViewModel(connectionService, adbConfig);
+        DevicePage = new DeviceViewModel(connectionService);
         AppsPage = new AppsViewModel(adbService);
         InstallPage = new InstallViewModel(adbService);
         SystemPage = new SystemViewModel(adbService);

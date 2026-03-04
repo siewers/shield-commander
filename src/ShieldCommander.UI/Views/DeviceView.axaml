@@ -86,25 +86,18 @@
             <!-- ADB not found warning -->
             <Border Background="#44FF6B6B" CornerRadius="4" Padding="12"
                     IsVisible="{Binding !IsAdbAvailable}">
-                <TextBlock Text="ADB not found. Install Android SDK Platform Tools or specify the path below."
-                           Foreground="#FFCCCC" />
-            </Border>
-
-            <!-- ADB path (shown when disconnected) -->
-            <StackPanel Spacing="4" IsVisible="{Binding !IsConnected}">
-                <TextBlock Text="ADB Path" FontSize="12" Foreground="Gray" />
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4">
-                    <TextBox Grid.Column="0"
-                             Text="{Binding AdbPath, Mode=TwoWay}"
-                             Watermark="{Binding AdbPathPlaceholder}"
-                             Padding="8,4" />
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="ADB not found. Install Android SDK Platform Tools or configure the path."
+                               Foreground="#FFCCCC"
+                               VerticalAlignment="Center" />
                     <Button Grid.Column="1"
-                            Content="Browse"
-                            x:Name="BrowseAdbButton"
-                            Click="BrowseAdbButton_Click"
-                            Padding="8,4" />
+                            Content="Configure ADB"
+                            x:Name="ConfigureAdbButton"
+                            Click="ConfigureAdbButton_Click"
+                            Padding="8,4"
+                            Margin="8,0,0,0" />
                 </Grid>
-            </StackPanel>
+            </Border>
 
             <!-- Connected banner (shown when connected) -->
             <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"

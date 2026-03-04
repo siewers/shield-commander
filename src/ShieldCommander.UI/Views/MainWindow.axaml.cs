@@ -12,6 +12,7 @@ using Avalonia.VisualTree;
 using FluentAvalonia.UI.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using ShieldCommander.Core.Services;
+using ShieldCommander.UI.Dialogs;
 using ShieldCommander.UI.Models;
 using ShieldCommander.UI.Platform;
 using ShieldCommander.UI.ViewModels;
@@ -240,6 +241,27 @@ public sealed partial class MainWindow : Window
 
             panel.Children.Add(item);
         }
+
+        panel.Children.Add(new Separator { Margin = new Thickness(4, 8) });
+
+        var adbConfigButton = new Button
+        {
+            Content = "ADB Configuration\u2026",
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
+            HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Left,
+            Margin = new Thickness(4, 0),
+            Padding = new Thickness(8, 6),
+        };
+
+        adbConfigButton.Click += async (_, _) =>
+        {
+            flyout.Hide();
+            var adbConfig = App.Services.GetRequiredService<IAdbConfigService>();
+            await AdbConfigDialog.ShowAsync(adbConfig);
+            vm.DevicePage.RefreshAdbStatus();
+        };
+
+        panel.Children.Add(adbConfigButton);
 
         flyout.Content = new Border
         {

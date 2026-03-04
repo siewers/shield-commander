@@ -1,8 +1,10 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using FluentAvalonia.UI.Controls;
+using Microsoft.Extensions.DependencyInjection;
+using ShieldCommander.Core.Services;
+using ShieldCommander.UI.Dialogs;
 using ShieldCommander.UI.ViewModels;
 
 namespace ShieldCommander.UI.Views;
@@ -62,23 +64,14 @@ public sealed partial class DeviceView : UserControl
         autoComplete.IsDropDownOpen = true;
     }
 
-    private async void BrowseAdbButton_Click(object? sender, RoutedEventArgs e)
+    private async void ConfigureAdbButton_Click(object? sender, RoutedEventArgs e)
     {
-        var topLevel = TopLevel.GetTopLevel(this);
-        if (topLevel is null)
-        {
-            return;
-        }
+        var adbConfig = App.Services.GetRequiredService<IAdbConfigService>();
+        await AdbConfigDialog.ShowAsync(adbConfig);
 
-        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        if (DataContext is DeviceViewModel vm)
         {
-            Title = "Select ADB executable",
-            AllowMultiple = false,
-        });
-
-        if (files.Count > 0 && DataContext is DeviceViewModel vm)
-        {
-            vm.AdbPath = files[0].Path.LocalPath;
+            vm.RefreshAdbStatus();
         }
     }
 }

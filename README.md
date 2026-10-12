@@ -18,9 +18,9 @@ Shield Commander connects to your NVIDIA Shield TV over Wi-Fi and gives you full
 
 **App Management** — Browse installed apps, uninstall what you don't need, and install APKs with drag-and-drop. Double-click any app for full package details including version, SDK levels, install dates, and size.
 
-**System Info** — Device model, Android version, RAM, storage, and more at a glance.
+**System Info** — Device name, model, Android version, IP address, uptime, RAM, storage, and more at a glance.
 
-**Device Discovery** — Automatically finds Shield devices on your network. Saves your devices for quick reconnection.
+**Device Discovery** — Automatically finds Shield devices on your network. Saves your devices for quick reconnection, with optional auto-connect on startup.
 
 ## Screenshots
 
@@ -33,25 +33,42 @@ Shield Commander connects to your NVIDIA Shield TV over Wi-Fi and gives you full
 
 ## Installation
 
-Download the latest release from the [Releases page](https://github.com/siewers/shield-commander/releases).
+Download the [latest release](https://github.com/siewers/shield-commander/releases/latest) for your platform:
+
+| Platform | File |
+| --- | --- |
+| macOS (Apple Silicon) | `ShieldCommander-macos-arm64.dmg` |
+| macOS (Intel) | `ShieldCommander-macos-x64.dmg` |
+| Windows | `ShieldCommander-windows-x64.zip` |
+| Linux | `ShieldCommander-linux-x64.tar.gz` or `ShieldCommander-linux-arm64.tar.gz` |
+
+Shield Commander is in beta while it heads for 1.0. Versions follow [semantic versioning](https://semver.org/), and older and prerelease builds are on the [Releases page](https://github.com/siewers/shield-commander/releases).
 
 ### macOS
 
-The app is not signed with an Apple Developer certificate. macOS will block it the first time you open it. To bypass this:
+Open the DMG and drag Shield Commander to Applications.
+
+The app is not signed with an Apple Developer certificate, so macOS blocks it the first time you open it. To allow it:
 
 1. Open Terminal
 2. Run: `xattr -cr "/Applications/Shield Commander.app"`
 3. Open the app normally
 
-### ADB path
+The first time you connect, macOS asks whether Shield Commander may find and connect to devices on your local network. Click **Allow**; without it the app can't reach your Shield. If you clicked **Don't Allow**, turn it on under **System Settings → Privacy & Security → Local Network**.
 
-Shield Commander auto-detects ADB from common install locations. If it can't find it (e.g. when running from a `.app` bundle), open the connection dialog and set the path manually under **ADB Path**.
+### Windows
+
+Extract the zip and run `ShieldCommander.exe`. The app is not code signed, so Windows SmartScreen may show "Windows protected your PC" the first time. Click **More info**, then **Run anyway**.
+
+### Linux
+
+Extract the archive and run `./ShieldCommander`.
 
 ## Requirements
 
 - macOS, Windows, or Linux
 - [ADB (Android Debug Bridge)](https://developer.android.com/tools/adb) installed
-- An NVIDIA Shield TV with **Developer Options** and **Network Debugging** enabled
+- An NVIDIA Shield TV on the same network, with **Network debugging** enabled
 
 ### Installing ADB
 
@@ -72,7 +89,31 @@ brew install android-platform-tools
 sudo apt install android-tools-adb
 ```
 
-You can also [download the SDK Platform Tools](https://developer.android.com/tools/releases/platform-tools#downloads) directly from Google and extract them anywhere. Shield Commander will auto-detect ADB from common install locations, or you can set the path manually in the app.
+You can also [download the SDK Platform Tools](https://developer.android.com/tools/releases/platform-tools#downloads) directly from Google and extract them anywhere.
+
+Shield Commander auto-detects ADB from common install locations. If it can't find it, click **Configure ADB** in the connection dialog, or open **Settings → ADB Configuration…**, and set the path manually.
+
+### Enabling network debugging on the Shield
+
+1. On the Shield, open **Settings → Device Preferences → About**.
+2. Select **Build** seven times until you see that you're now a developer.
+3. Go back to **Device Preferences → Developer options** and turn on **Network debugging**.
+
+The first time you connect, the Shield asks you to allow USB debugging from your computer. Check **Always allow from this computer** and select **OK**. Shield Commander waits for you to accept.
+
+## Building from source
+
+Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (the exact version is pinned in `global.json`).
+
+```
+dotnet run --project src/ShieldCommander.UI
+```
+
+Run the tests with:
+
+```
+dotnet run --project src/ShieldCommander.Core.Tests
+```
 
 ## Built With
 

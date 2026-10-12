@@ -10,7 +10,7 @@ public interface IAdbService
 
     void CloseSession();
 
-    Task<AdbResult> ConnectAsync(string ipAddress, int port = 5555);
+    Task<AdbResult> ConnectAsync(string ipAddress, int port);
 
     Task<AdbResult> DisconnectAsync(string ipAddress);
 

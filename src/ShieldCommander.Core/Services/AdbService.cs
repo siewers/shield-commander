@@ -23,7 +23,7 @@ public sealed class AdbService : IAdbService
     public void CloseSession() => _runner.CloseSession();
 
     // Device operations
-    public Task<AdbResult> ConnectAsync(string ipAddress, int port = 5555) =>
+    public Task<AdbResult> ConnectAsync(string ipAddress, int port) =>
         _runner.ExecuteAsync(new ConnectDeviceCommand(ipAddress, port));
 
     public Task<AdbResult> DisconnectAsync(string ipAddress) =>

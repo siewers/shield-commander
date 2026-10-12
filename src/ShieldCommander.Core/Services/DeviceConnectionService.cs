@@ -18,6 +18,14 @@ public sealed class DeviceConnectionService(
     {
         var (device, output) = await ReconnectAsync(ipAddress, CancellationToken.None);
 
+        // macOS grants local network access per app. An adb server started by another process, or left
+        // running after Shield Commander exited, gets "No route to host" until it is restarted by this app.
+        if (device is null && output.Contains("No route to host", StringComparison.OrdinalIgnoreCase))
+        {
+            await adbService.KillServerAsync();
+            (device, output) = await ReconnectAsync(ipAddress, CancellationToken.None);
+        }
+
         return device?.State switch
         {
             AdbDeviceState.Online => OnConnected(ipAddress, deviceName ?? device.DeviceName),

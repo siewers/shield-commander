@@ -1,0 +1,13 @@
+using ShieldCommander.Core.Models;
+
+namespace ShieldCommander.Core.Services.Commands;
+
+internal sealed class KillServerCommand : IAdbCommand
+{
+    public string Name => "KillServer";
+
+    public async Task<AdbResult> ExecuteAsync(IAdbRunner runner)
+    {
+        return await runner.RunAdbAsync("kill-server");
+    }
+}

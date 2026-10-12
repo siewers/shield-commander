@@ -31,7 +31,7 @@
 ## Commits and pull requests
 - Use simple `git commit -m "message"`; do not use heredocs.
 - Make changes through pull requests rather than pushing to `main`, so they appear in the generated release notes.
-- Label each pull request so the release notes sort it correctly: `enhancement` (new app features), `bug` (app fixes), `maintenance` (build, CI, release tooling), or `documentation` (README and other docs). Pull requests labeled `maintenance` or `documentation` are left out of the release notes, as are Dependabot updates to GitHub Actions and the .NET SDK. Dependabot labels its own pull requests `dependencies`.
+- Label each pull request so the release notes sort it correctly: `enhancement` (new app features), `bug` (app fixes), `maintenance` (build, CI, release tooling), or `documentation` (README and other docs). Pull requests labeled `maintenance` or `documentation` are left out of the release notes, as are Dependabot updates to GitHub Actions, the .NET SDK, and test-only packages (labeled `test-dependencies` by the Dependabot labels workflow, based on the `Tests` group in `Directory.Packages.props`). Dependabot labels its own pull requests `dependencies`.
 
 ## Releases
 - Versions follow SemVer and come only from the git tag; there is no version file. Builds from source report `0.0.0-dev`.

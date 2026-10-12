@@ -11,6 +11,7 @@ changelog:
       - maintenance
       - github_actions
       - dotnet_sdk_package_manager
+      - test-dependencies
   categories:
     - title: New features
       labels:

@@ -1,0 +1,53 @@
+name: Dependabot labels
+
+# Labels Dependabot pull requests that only update test packages, so they're left out of the release notes.
+# Test packages are the ones in the "Tests" item group of Directory.Packages.props.
+
+on: pull_request
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v3
+
+      - name: Label test-only dependency updates
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          DEPENDENCY_NAMES: ${{ steps.metadata.outputs.dependency-names }}
+        run: |
+          TEST_PACKAGES=$(python3 -c '
+          import xml.etree.ElementTree as ET
+          root = ET.parse("Directory.Packages.props").getroot()
+          for group in root.iter("ItemGroup"):
+              if group.get("Label") == "Tests":
+                  for package in group.iter("PackageVersion"):
+                      print(package.get("Include"))
+          ')
+
+          if [ -z "$DEPENDENCY_NAMES" ]; then
+            echo "No dependency names reported"
+            exit 0
+          fi
+
+          IFS=',' read -ra NAMES <<< "$DEPENDENCY_NAMES"
+          for name in "${NAMES[@]}"; do
+            name=$(echo "$name" | xargs)
+            if ! grep -qxF "$name" <<< "$TEST_PACKAGES"; then
+              echo "$name is not a test package"
+              exit 0
+            fi
+          done
+
+          gh pr edit "$PR_URL" --add-label test-dependencies

@@ -16,7 +16,7 @@ public interface IAdbService
 
     Task<AdbResult> DisconnectAllAsync();
 
-    Task<List<ShieldDevice>> GetConnectedDevicesAsync();
+    Task<List<ShieldDevice>> GetDevicesAsync();
 
     Task<List<InstalledPackage>> GetInstalledPackagesAsync();
 

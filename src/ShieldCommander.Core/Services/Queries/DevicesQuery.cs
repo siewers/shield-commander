@@ -2,7 +2,7 @@ using ShieldCommander.Core.Models;
 
 namespace ShieldCommander.Core.Services.Queries;
 
-internal sealed class ConnectedDevicesQuery : IAdbQuery<List<ShieldDevice>>
+internal sealed class DevicesQuery : IAdbQuery<List<ShieldDevice>>
 {
     public async Task<List<ShieldDevice>> ExecuteAsync(IAdbRunner runner)
     {
@@ -22,8 +22,8 @@ internal sealed class ConnectedDevicesQuery : IAdbQuery<List<ShieldDevice>>
                 continue;
             }
 
-            var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length < 2 || parts[1] != "device")
+            var parts = line.Split([' ', '\t'], StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length < 2)
             {
                 continue;
             }
@@ -33,9 +33,17 @@ internal sealed class ConnectedDevicesQuery : IAdbQuery<List<ShieldDevice>>
                        .FirstOrDefault(p => p.StartsWith("model:"))
                       ?.Replace("model:", "");
 
-            devices.Add(new ShieldDevice(address, model, IsConnected: true));
+            devices.Add(new ShieldDevice(address, model, ParseState(parts[1])));
         }
 
         return devices;
     }
+
+    private static AdbDeviceState ParseState(string state) => state switch
+    {
+        "device" => AdbDeviceState.Online,
+        "offline" => AdbDeviceState.Offline,
+        "unauthorized" => AdbDeviceState.Unauthorized,
+        _ => AdbDeviceState.Unknown,
+    };
 }

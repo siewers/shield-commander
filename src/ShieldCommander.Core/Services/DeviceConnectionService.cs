@@ -8,26 +8,25 @@ public sealed class DeviceConnectionService(
     IDeviceDiscoveryService discoveryService,
     IAdbConfigService adbConfig) : IDeviceConnectionService
 {
+    private const int AdbPort = 5555;
+    private const int SettleAttempts = 6;
+    private static readonly TimeSpan SettleInterval = TimeSpan.FromMilliseconds(500);
+
     public bool IsAdbAvailable() => adbConfig.IsAdbAvailable(null);
 
     public async Task<ConnectionResult> ConnectAsync(string ipAddress, string? deviceName = null)
     {
-        await adbService.ConnectAsync(ipAddress);
+        var (device, output) = await ReconnectAsync(ipAddress, CancellationToken.None);
 
-        var devices = await adbService.GetConnectedDevicesAsync();
-        var match = devices.FirstOrDefault(d => d.IpAddress.StartsWith(ipAddress));
-
-        if (match != null)
+        return device?.State switch
         {
-            var name = deviceName ?? match.DeviceName;
-            settings.AddOrUpdateDevice(ipAddress, name);
-            return new ConnectionResult(ConnectionStatus.Connected, name);
-        }
-
-        return new ConnectionResult(ConnectionStatus.AwaitingAuthorization);
+            AdbDeviceState.Online => OnConnected(ipAddress, deviceName ?? device.DeviceName),
+            AdbDeviceState.Unauthorized or AdbDeviceState.Offline => new ConnectionResult(ConnectionStatus.AwaitingAuthorization),
+            _ => new ConnectionResult(ConnectionStatus.Failed, Error: output),
+        };
     }
 
-    public async Task<bool> WaitForAuthorizationAsync(string ipAddress, CancellationToken ct, string? deviceName = null)
+    public async Task<ConnectionResult> WaitForAuthorizationAsync(string ipAddress, CancellationToken ct, string? deviceName = null)
     {
         try
         {
@@ -35,18 +34,17 @@ public sealed class DeviceConnectionService(
             {
                 await Task.Delay(2000, ct);
 
-                if (i > 0 && i % 5 == 0)
+                var device = await FindDeviceAsync(ipAddress);
+
+                // A pending authorization shows as unauthorized; only re-establish a dropped or stale transport
+                if ((device?.State is null or AdbDeviceState.Offline) && i % 5 == 4)
                 {
-                    await adbService.ConnectAsync(ipAddress);
+                    (device, _) = await ReconnectAsync(ipAddress, ct);
                 }
 
-                var devices = await adbService.GetConnectedDevicesAsync();
-                var match = devices.FirstOrDefault(d => d.IpAddress.StartsWith(ipAddress));
-
-                if (match != null)
+                if (device?.State == AdbDeviceState.Online)
                 {
-                    settings.AddOrUpdateDevice(ipAddress, deviceName ?? match.DeviceName);
-                    return true;
+                    return OnConnected(ipAddress, deviceName ?? device.DeviceName);
                 }
             }
         }
@@ -55,8 +53,46 @@ public sealed class DeviceConnectionService(
             // User cancelled
         }
 
-        return false;
+        return new ConnectionResult(ConnectionStatus.Failed);
     }
+
+    private ConnectionResult OnConnected(string ipAddress, string? deviceName)
+    {
+        settings.AddOrUpdateDevice(ipAddress, deviceName);
+        return new ConnectionResult(ConnectionStatus.Connected, deviceName);
+    }
+
+    private async Task<(ShieldDevice? Device, string Output)> ReconnectAsync(string ipAddress, CancellationToken ct)
+    {
+        // adb keeps a stale offline transport after the device sleeps or drops off the network,
+        // and "adb connect" then reports "already connected" without reconnecting
+        if ((await FindDeviceAsync(ipAddress))?.State == AdbDeviceState.Offline)
+        {
+            await adbService.DisconnectAsync(ToSerial(ipAddress));
+        }
+
+        // Exit code and output are unreliable here ("failed to authenticate" still connects),
+        // so the device list is the source of truth
+        var result = await adbService.ConnectAsync(ipAddress, AdbPort);
+
+        var device = await FindDeviceAsync(ipAddress);
+        for (var i = 1; i < SettleAttempts && device?.State == AdbDeviceState.Offline; i++)
+        {
+            await Task.Delay(SettleInterval, ct);
+            device = await FindDeviceAsync(ipAddress);
+        }
+
+        return (device, string.IsNullOrEmpty(result.Output) ? result.Error : result.Output);
+    }
+
+    private async Task<ShieldDevice?> FindDeviceAsync(string ipAddress)
+    {
+        var serial = ToSerial(ipAddress);
+        var devices = await adbService.GetDevicesAsync();
+        return devices.FirstOrDefault(d => d.IpAddress == serial);
+    }
+
+    private static string ToSerial(string ipAddress) => $"{ipAddress}:{AdbPort}";
 
     public async Task DisconnectAsync(string ipAddress)
     {
@@ -70,7 +106,8 @@ public sealed class DeviceConnectionService(
 
     public async Task<List<ShieldDevice>> GetConnectedDevicesAsync()
     {
-        return await adbService.GetConnectedDevicesAsync();
+        var devices = await adbService.GetDevicesAsync();
+        return devices.Where(d => d.State == AdbDeviceState.Online).ToList();
     }
 
     public IReadOnlyList<SavedDevice> GetSavedDevices() => settings.SavedDevices;

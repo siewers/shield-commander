@@ -15,4 +15,6 @@ public interface IAdbRunner
     Task<AdbResult> RunAdbAsync(string arguments);
 
     Task<AdbResult> RunAdbAsync(string arguments, bool strictCheck);
+
+    Task<AdbResult> RunAdbAsync(string arguments, TimeSpan timeout);
 }

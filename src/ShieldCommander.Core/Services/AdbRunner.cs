@@ -39,11 +39,20 @@ public sealed class AdbRunner(IAdbPathProvider pathProvider) : IAdbRunner
 
     public Task<AdbResult> RunAdbAsync(string arguments) => RunAdbAsync(arguments, strictCheck: true);
 
-    public async Task<AdbResult> RunAdbAsync(string arguments, bool strictCheck)
+    public Task<AdbResult> RunAdbAsync(string arguments, bool strictCheck) => RunAdbAsync(arguments, strictCheck, CancellationToken.None);
+
+    public async Task<AdbResult> RunAdbAsync(string arguments, TimeSpan timeout)
     {
+        using var cts = new CancellationTokenSource(timeout);
+        return await RunAdbAsync(arguments, strictCheck: true, cts.Token);
+    }
+
+    private async Task<AdbResult> RunAdbAsync(string arguments, bool strictCheck, CancellationToken ct)
+    {
+        using var process = new Process();
+
         try
         {
-            using var process = new Process();
             process.StartInfo = new ProcessStartInfo
             {
                 FileName = pathProvider.CurrentPath,
@@ -58,7 +67,7 @@ public sealed class AdbRunner(IAdbPathProvider pathProvider) : IAdbRunner
 
             var stdoutTask = process.StandardOutput.ReadToEndAsync();
             var stderrTask = process.StandardError.ReadToEndAsync();
-            await process.WaitForExitAsync();
+            await process.WaitForExitAsync(ct);
             var output = await stdoutTask;
             var error = await stderrTask;
 
@@ -69,6 +78,11 @@ public sealed class AdbRunner(IAdbPathProvider pathProvider) : IAdbRunner
             }
 
             return new AdbResult(success, output.Trim(), error.Trim());
+        }
+        catch (OperationCanceledException)
+        {
+            process.Kill();
+            return new AdbResult(false, "", $"Timed out running adb {arguments}");
         }
         catch (Exception ex)
         {

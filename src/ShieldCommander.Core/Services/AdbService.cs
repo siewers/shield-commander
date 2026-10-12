@@ -32,8 +32,8 @@ public sealed class AdbService : IAdbService
     public Task<AdbResult> DisconnectAllAsync() =>
         _runner.ExecuteAsync(new DisconnectDeviceCommand());
 
-    public Task<List<ShieldDevice>> GetConnectedDevicesAsync() =>
-        _runner.ExecuteAsync(new ConnectedDevicesQuery());
+    public Task<List<ShieldDevice>> GetDevicesAsync() =>
+        _runner.ExecuteAsync(new DevicesQuery());
 
     // Package operations
     public Task<List<InstalledPackage>> GetInstalledPackagesAsync() =>

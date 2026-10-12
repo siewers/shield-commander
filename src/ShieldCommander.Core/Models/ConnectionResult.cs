@@ -1,3 +1,3 @@
 namespace ShieldCommander.Core.Models;
 
-public sealed record ConnectionResult(ConnectionStatus Status, string? DeviceName = null);
+public sealed record ConnectionResult(ConnectionStatus Status, string? DeviceName = null, string? Error = null);

@@ -103,12 +103,10 @@ public sealed partial class DeviceViewModel : ViewModelBase
 
             var completed = await Task.WhenAny(dialogTask, pollTask);
 
-            if (completed == pollTask && await pollTask)
+            if (completed == pollTask && await pollTask is { Status: ConnectionStatus.Connected } authorized)
             {
                 await cts.CancelAsync();
-                await RefreshDevicesAsync();
-                var device = ConnectedDevices.FirstOrDefault(d => d.IpAddress.StartsWith(IpAddress));
-                OnConnected(IpAddress, device?.DeviceName);
+                OnConnected(IpAddress, authorized.DeviceName);
             }
             else
             {
@@ -120,7 +118,7 @@ public sealed partial class DeviceViewModel : ViewModelBase
         }
         else
         {
-            StatusText = "Failed to connect";
+            StatusText = string.IsNullOrEmpty(result.Error) ? "Failed to connect" : result.Error;
         }
 
         IsBusy = false;

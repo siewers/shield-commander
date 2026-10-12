@@ -45,6 +45,10 @@ sed -i '' "s/__BUNDLE_VERSION__/${BUNDLE_VERSION}/g; s/__VERSION__/${VERSION}/g;
 # Clean up intermediate output
 rm -rf "$OUTPUT_DIR/bin"
 
+# Ad-hoc sign the bundle so macOS ties the Local Network permission to the bundle identifier
+# (the linker signature on the apphost has the identifier "apphost" and does not cover Info.plist)
+codesign --force --deep -s - "$APP_BUNDLE"
+
 # Create DMG if requested
 if [[ "${3:-}" == "--dmg" ]]; then
     DMG_PATH="${4:-$OUTPUT_DIR/ShieldCommander-macos-${RID#osx-}.dmg}"

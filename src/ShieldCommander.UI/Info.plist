@@ -22,6 +22,14 @@
         <true/>
         <key>LSMinimumSystemVersion</key>
         <string>12.0</string>
+        <key>NSLocalNetworkUsageDescription</key>
+        <string>Shield Commander connects to your NVIDIA Shield over the local network using ADB.</string>
+        <key>NSBonjourServices</key>
+        <array>
+            <string>_androidtvremote2._tcp</string>
+            <string>_androidtvremote._tcp</string>
+            <string>_adb._tcp</string>
+        </array>
         <key>NSHumanReadableCopyright</key>
         <string>Copyright © __YEAR__ Siewers Software. All rights reserved.</string>
     </dict>

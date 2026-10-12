@@ -16,6 +16,9 @@ changelog:
     - title: Dependency updates
       labels:
         - dependencies
+    - title: Maintenance
+      labels:
+        - maintenance
     - title: Other changes
       labels:
         - "*"

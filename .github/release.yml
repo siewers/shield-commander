@@ -1,11 +1,16 @@
 # Categories for the release notes GitHub generates from merged pull requests.
 # Pull requests are placed in the first category whose labels match.
 changelog:
+  # Changes that don't affect the app itself are left out of the release notes
   exclude:
     labels:
       - duplicate
       - invalid
       - wontfix
+      - documentation
+      - maintenance
+      - github_actions
+      - dotnet_sdk_package_manager
   categories:
     - title: New features
       labels:
@@ -16,9 +21,6 @@ changelog:
     - title: Dependency updates
       labels:
         - dependencies
-    - title: Maintenance
-      labels:
-        - maintenance
     - title: Other changes
       labels:
         - "*"

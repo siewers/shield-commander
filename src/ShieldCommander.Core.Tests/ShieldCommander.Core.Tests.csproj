@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Imposter" Version="0.1.9" />
-    <PackageReference Include="TUnit" Version="1.22.6"/>
+    <PackageReference Include="Imposter"/>
+    <PackageReference Include="TUnit"/>
   </ItemGroup>
 
   <ItemGroup>

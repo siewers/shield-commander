@@ -1,0 +1,27 @@
+<Project>
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup Label="Core">
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2"/>
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12"/>
+    <PackageVersion Include="Zeroconf" Version="3.7.16"/>
+  </ItemGroup>
+
+  <ItemGroup Label="UI">
+    <PackageVersion Include="Avalonia" Version="12.1.4"/>
+    <PackageVersion Include="Avalonia.Controls.DataGrid" Version="12.1.2"/>
+    <PackageVersion Include="Avalonia.Desktop" Version="12.1.4"/>
+    <PackageVersion Include="Avalonia.Fonts.Inter" Version="12.1.4"/>
+    <PackageVersion Include="FluentAvaloniaUI" Version="3.1.0"/>
+    <PackageVersion Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.1.0-dev-798"/>
+  </ItemGroup>
+
+  <ItemGroup Label="Tests">
+    <PackageVersion Include="Imposter" Version="0.1.9"/>
+    <PackageVersion Include="TUnit" Version="1.22.6"/>
+  </ItemGroup>
+
+</Project>

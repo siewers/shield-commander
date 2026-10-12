@@ -6,6 +6,7 @@
 - MVVM with CommunityToolkit.Mvvm — use `[ObservableProperty]`, `[RelayCommand]`, and `partial void OnXChanged` for property change reactions.
 - Avalonia UI with compiled bindings enabled by default. Use `x:DataType` on views.
 - LiveCharts2 (`LiveChartsCore.SkiaSharpView.Avalonia`) for time-series charting.
+- NuGet package versions are managed centrally in `Directory.Packages.props`. Add `<PackageReference Include="..."/>` without a version in the project, and the version in `Directory.Packages.props`.
 - Keep one top-level type per file. Nested types are fine within their parent.
 - Prefer the latest .NET language/runtime features where appropriate.
 - Use trailing commas in multi-line initializers, parameter lists, and collection expressions to simplify diffs.

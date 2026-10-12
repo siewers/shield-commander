@@ -65,8 +65,8 @@ public sealed class AdbRunner(IAdbPathProvider pathProvider) : IAdbRunner
 
             process.Start();
 
-            var stdoutTask = process.StandardOutput.ReadToEndAsync();
-            var stderrTask = process.StandardError.ReadToEndAsync();
+            var stdoutTask = process.StandardOutput.ReadToEndAsync(ct);
+            var stderrTask = process.StandardError.ReadToEndAsync(ct);
             await process.WaitForExitAsync(ct);
             var output = await stdoutTask;
             var error = await stderrTask;

@@ -1,6 +1,5 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using FluentAvalonia.UI.Controls;
@@ -102,7 +101,9 @@ internal static class AdbConfigDialog
         {
             var topLevel = TopLevel.GetTopLevel(dialog);
             if (topLevel is null)
+            {
                 return;
+            }
 
             var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {

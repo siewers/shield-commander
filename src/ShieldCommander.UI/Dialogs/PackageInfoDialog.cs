@@ -119,13 +119,13 @@ internal static class PackageInfoDialog
 
         var confirmed = false;
 
-        var dialog = new ContentDialog
+        var dialog = new FAContentDialog
         {
             Title = title,
             Content = grid,
             PrimaryButtonText = primaryButtonText,
             CloseButtonText = "Close",
-            DefaultButton = ContentDialogButton.Close,
+            DefaultButton = FAContentDialogButton.Close,
         };
 
         if (confirmMessage is not null)
@@ -133,22 +133,22 @@ internal static class PackageInfoDialog
             dialog.PrimaryButtonClick += async (_, args) =>
             {
                 var deferral = args.GetDeferral();
-                var confirm = new ContentDialog
+                var confirm = new FAContentDialog
                 {
                     Title = primaryButtonText,
                     Content = confirmMessage,
                     PrimaryButtonText = primaryButtonText,
                     CloseButtonText = "Cancel",
-                    DefaultButton = ContentDialogButton.Close,
+                    DefaultButton = FAContentDialogButton.Close,
                 };
 
-                confirmed = await confirm.ShowAsync() == ContentDialogResult.Primary;
+                confirmed = await confirm.ShowAsync() == FAContentDialogResult.Primary;
                 args.Cancel = !confirmed;
                 deferral.Complete();
             };
         }
 
         var result = await dialog.ShowAsync();
-        return confirmMessage is not null ? confirmed : result == ContentDialogResult.Primary;
+        return confirmMessage is not null ? confirmed : result == FAContentDialogResult.Primary;
     }
 }

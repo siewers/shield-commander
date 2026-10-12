@@ -5,5 +5,5 @@ namespace ShieldCommander.UI.Platform;
 
 public interface IPlatformUI
 {
-    void ApplyTitleBarLayout(Control spacer, Button statusButton, NavigationView navView, Control appInfo);
+    void ApplyTitleBarLayout(Control spacer, Button statusButton, FANavigationView navView, Control appInfo);
 }

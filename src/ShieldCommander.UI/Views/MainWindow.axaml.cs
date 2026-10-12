@@ -133,7 +133,7 @@ public sealed partial class MainWindow : Window
                 UpdateConnectionIndicator();
 
                 // Auto-select first nav item
-                NavView.SelectedItem = NavView.MenuItems.OfType<NavigationViewItem>().FirstOrDefault();
+                NavView.SelectedItem = NavView.MenuItems.OfType<FANavigationViewItem>().FirstOrDefault();
 
                 // Auto-connect or open device dialog on startup
                 if (DataContext is MainWindowViewModel { IsDeviceConnected: false } vm)
@@ -150,40 +150,40 @@ public sealed partial class MainWindow : Window
 
     private void SetNavigationIcons()
     {
-        var topIcons = new IconSource[]
+        var topIcons = new FAIconSource[]
         {
-            new FontIconSource { Glyph = "\ue2ce", FontFamily = PhosphorThin, FontSize = 20 },// info
-            new FontIconSource { Glyph = "\ue296", FontFamily = PhosphorThin, FontSize = 20 },// grid-four
-            new FontIconSource { Glyph = "\ue154", FontFamily = PhosphorThin, FontSize = 20 },// chart-line
+            new FAFontIconSource { Glyph = "\ue2ce", FontFamily = PhosphorThin, FontSize = 20 },// info
+            new FAFontIconSource { Glyph = "\ue296", FontFamily = PhosphorThin, FontSize = 20 },// grid-four
+            new FAFontIconSource { Glyph = "\ue154", FontFamily = PhosphorThin, FontSize = 20 },// chart-line
         };
 
         var items = NavView.MenuItems;
 
         for (var i = 0; i < items.Count && i < topIcons.Length; i++)
         {
-            if (items[i] is NavigationViewItem item)
+            if (items[i] is FANavigationViewItem item)
             {
                 item.IconSource = topIcons[i];
             }
         }
 
         // Child icons under Activity Monitor
-        if (items.Count > 2 && items[2] is NavigationViewItem activityMonitor)
+        if (items.Count > 2 && items[2] is FANavigationViewItem activityMonitor)
         {
-            var childIcons = new IconSource[]
+            var childIcons = new FAIconSource[]
             {
-                new FontIconSource { Glyph = "\ue610", FontFamily = PhosphorThin, FontSize = 20 },// cpu
-                new FontIconSource { Glyph = "\ue9c4", FontFamily = PhosphorThin, FontSize = 20 },// memory
-                new FontIconSource { Glyph = "\ue29e", FontFamily = PhosphorThin, FontSize = 20 },// hard-drive
-                new FontIconSource { Glyph = "\uedde", FontFamily = PhosphorThin, FontSize = 20 },// network
-                new FontIconSource { Glyph = "\ue5c6", FontFamily = PhosphorThin, FontSize = 20 },// thermometer
-                new FontIconSource { Glyph = "\ueadc", FontFamily = PhosphorThin, FontSize = 20 },// list-checks
+                new FAFontIconSource { Glyph = "\ue610", FontFamily = PhosphorThin, FontSize = 20 },// cpu
+                new FAFontIconSource { Glyph = "\ue9c4", FontFamily = PhosphorThin, FontSize = 20 },// memory
+                new FAFontIconSource { Glyph = "\ue29e", FontFamily = PhosphorThin, FontSize = 20 },// hard-drive
+                new FAFontIconSource { Glyph = "\uedde", FontFamily = PhosphorThin, FontSize = 20 },// network
+                new FAFontIconSource { Glyph = "\ue5c6", FontFamily = PhosphorThin, FontSize = 20 },// thermometer
+                new FAFontIconSource { Glyph = "\ueadc", FontFamily = PhosphorThin, FontSize = 20 },// list-checks
             };
 
             var children = activityMonitor.MenuItems;
             for (var i = 0; i < children.Count && i < childIcons.Length; i++)
             {
-                if (children[i] is NavigationViewItem child)
+                if (children[i] is FANavigationViewItem child)
                 {
                     child.IconSource = childIcons[i];
                 }
@@ -192,14 +192,14 @@ public sealed partial class MainWindow : Window
 
         // Footer icons
         var footerItems = NavView.FooterMenuItems;
-        if (footerItems.Count > 0 && footerItems[0] is NavigationViewItem settingsItem)
+        if (footerItems.Count > 0 && footerItems[0] is FANavigationViewItem settingsItem)
         {
-            settingsItem.IconSource = new FontIconSource { Glyph = "\ue270", FontFamily = PhosphorThin, FontSize = 20 };// gear
+            settingsItem.IconSource = new FAFontIconSource { Glyph = "\ue270", FontFamily = PhosphorThin, FontSize = 20 };// gear
         }
 
-        if (footerItems.Count > 1 && footerItems[1] is NavigationViewItem aboutItem)
+        if (footerItems.Count > 1 && footerItems[1] is FANavigationViewItem aboutItem)
         {
-            aboutItem.IconSource = new FontIconSource { Glyph = "\ue3e8", FontFamily = PhosphorThin, FontSize = 20 };// question
+            aboutItem.IconSource = new FAFontIconSource { Glyph = "\ue3e8", FontFamily = PhosphorThin, FontSize = 20 };// question
         }
     }
 
@@ -308,12 +308,12 @@ public sealed partial class MainWindow : Window
             MinWidth = 500,
         };
 
-        var dialog = new ContentDialog
+        var dialog = new FAContentDialog
         {
             Title = "Device Connection",
             Content = deviceView,
             CloseButtonText = "Close",
-            DefaultButton = ContentDialogButton.Close,
+            DefaultButton = FAContentDialogButton.Close,
         };
 
         vm.DevicePage.PropertyChanged += OnDevicePropertyChange;
@@ -354,9 +354,9 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void NavView_SelectionChanged(object? sender, NavigationViewSelectionChangedEventArgs e)
+    private void NavView_SelectionChanged(object? sender, FANavigationViewSelectionChangedEventArgs e)
     {
-        if (e.SelectedItem is NavigationViewItem item &&
+        if (e.SelectedItem is FANavigationViewItem item &&
             item.Tag is string tag &&
             DataContext is MainWindowViewModel vm)
         {
@@ -364,9 +364,9 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void NavView_ItemInvoked(object? sender, NavigationViewItemInvokedEventArgs e)
+    private void NavView_ItemInvoked(object? sender, FANavigationViewItemInvokedEventArgs e)
     {
-        if (e.InvokedItemContainer is NavigationViewItem { Tag: string tag })
+        if (e.InvokedItemContainer is FANavigationViewItem { Tag: string tag })
         {
             if (tag == "About")
             {

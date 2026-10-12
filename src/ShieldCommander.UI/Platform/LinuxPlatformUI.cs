@@ -6,7 +6,7 @@ namespace ShieldCommander.UI.Platform;
 
 public sealed class LinuxPlatformUI : IPlatformUI
 {
-    public void ApplyTitleBarLayout(Control spacer, Button statusButton, NavigationView navView, Control appInfo)
+    public void ApplyTitleBarLayout(Control spacer, Button statusButton, FANavigationView navView, Control appInfo)
     {
         spacer.Width = 0;
         statusButton.Margin = new Thickness(0, 0, 140, 0);

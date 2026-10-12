@@ -44,7 +44,7 @@ public sealed partial class DeviceView : UserControl
 
     private async Task ShowAuthorizationDialogAsync(CancellationToken ct)
     {
-        var dialog = new ContentDialog
+        var dialog = new FAContentDialog
         {
             Title = "Waiting for Device",
             Content = "Please check your TV and accept the connection.\n\n" +

@@ -30,7 +30,7 @@ internal sealed class MenuHelper(IPlatformShell shell)
                 VerticalAlignment = VerticalAlignment.Center,
                 Children =
                 {
-                    new FontIcon
+                    new FAFontIcon
                     {
                         Glyph = glyph,
                         FontFamily = PhosphorThin,

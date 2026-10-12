@@ -55,7 +55,7 @@ internal static class AdbConfigDialog
         var pathBox = new TextBox
         {
             Text = adbConfig.CurrentPath ?? string.Empty,
-            Watermark = adbConfig.ResolveAdbPath(),
+            PlaceholderText = adbConfig.ResolveAdbPath(),
             Padding = new Thickness(8, 4),
         };
 
@@ -90,12 +90,12 @@ internal static class AdbConfigDialog
             },
         };
 
-        var dialog = new ContentDialog
+        var dialog = new FAContentDialog
         {
             Title = "ADB Configuration",
             Content = panel,
             CloseButtonText = "Close",
-            DefaultButton = ContentDialogButton.Close,
+            DefaultButton = FAContentDialogButton.Close,
         };
 
         browseButton.Click += async (_, _) =>

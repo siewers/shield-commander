@@ -16,7 +16,7 @@ public sealed class DeviceConnectionService(
 
     public async Task<ConnectionResult> ConnectAsync(string ipAddress, string? deviceName = null)
     {
-        var (device, output) = await ReconnectAsync(ipAddress, CancellationToken.None);
+        var (device, output) = await ReconnectAsync(ipAddress, allowServerRestart: true, CancellationToken.None);
 
         return device?.State switch
         {
@@ -28,6 +28,9 @@ public sealed class DeviceConnectionService(
 
     public async Task<ConnectionResult> WaitForAuthorizationAsync(string ipAddress, CancellationToken ct, string? deviceName = null)
     {
+        // Restart the adb server at most once per wait, so an unreachable device doesn't restart it every reconnect
+        var serverRestartAllowed = true;
+
         try
         {
             for (var i = 0; i < 60; i++)
@@ -39,7 +42,8 @@ public sealed class DeviceConnectionService(
                 // A pending authorization shows as unauthorized; only re-establish a dropped or stale transport
                 if ((device?.State is null or AdbDeviceState.Offline) && i % 5 == 4)
                 {
-                    (device, _) = await ReconnectAsync(ipAddress, ct);
+                    (device, _) = await ReconnectAsync(ipAddress, serverRestartAllowed, ct);
+                    serverRestartAllowed = false;
                 }
 
                 if (device?.State == AdbDeviceState.Online)
@@ -62,7 +66,25 @@ public sealed class DeviceConnectionService(
         return new ConnectionResult(ConnectionStatus.Connected, deviceName);
     }
 
-    private async Task<(ShieldDevice? Device, string Output)> ReconnectAsync(string ipAddress, CancellationToken ct)
+    private async Task<(ShieldDevice? Device, string Output)> ReconnectAsync(string ipAddress, bool allowServerRestart, CancellationToken ct)
+    {
+        var (device, output) = await ConnectOnceAsync(ipAddress, ct);
+
+        // macOS grants local network access per app. An adb server started by another process, or left
+        // running after Shield Commander exited, gets "No route to host" until it is restarted by this app.
+        if (allowServerRestart && device is null && IsLocalNetworkDenied(output))
+        {
+            await adbService.KillServerAsync();
+            (device, output) = await ConnectOnceAsync(ipAddress, ct);
+        }
+
+        return (device, output);
+    }
+
+    private static bool IsLocalNetworkDenied(string adbOutput) =>
+        OperatingSystem.IsMacOS() && adbOutput.Contains("No route to host", StringComparison.OrdinalIgnoreCase);
+
+    private async Task<(ShieldDevice? Device, string Output)> ConnectOnceAsync(string ipAddress, CancellationToken ct)
     {
         // adb keeps a stale offline transport after the device sleeps or drops off the network,
         // and "adb connect" then reports "already connected" without reconnecting

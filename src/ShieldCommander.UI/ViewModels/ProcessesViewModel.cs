@@ -37,7 +37,7 @@ public sealed partial class ProcessesViewModel : ViewModelBase
         AdbService = adbService;
         _activityMonitor = activityMonitor;
 
-        _activityMonitor.PropertyChanged += (_, args) =>
+        _activityMonitor.PropertyChanged += (sender, args) =>
         {
             if (args.PropertyName != nameof(ActivityMonitorOrchestrator.SelectedRefreshRate) || !IsMonitoring)
             {

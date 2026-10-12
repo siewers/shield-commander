@@ -34,7 +34,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         adbService.SessionLost += () =>
             Dispatcher.UIThread.Post(() => DevicePage.IsConnected = false);
 
-        DevicePage.PropertyChanged += (_, args) =>
+        DevicePage.PropertyChanged += (sender, args) =>
         {
             if (args.PropertyName != nameof(DeviceViewModel.IsConnected))
             {

@@ -21,7 +21,7 @@
                            HorizontalAlignment="Center"
                            Margin="0,4,0,4" />
                 <!-- Left: Packets in / out / per-sec -->
-                <Border Grid.Column="0"
+                <Border Grid.Row="0" Grid.Column="0"
                         BorderBrush="#555555"
                         BorderThickness="0,0,1,0" Padding="12,8">
                     <Grid ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto,Auto,Auto"
@@ -47,7 +47,7 @@
                     </Grid>
                 </Border>
                 <!-- Center: Mini DATA chart -->
-                <Border Grid.Column="1"
+                <Border Grid.Row="0" Grid.Column="1"
                         BorderBrush="#555555"
                         BorderThickness="0,0,1,0" Padding="8,4">
                     <StackPanel>
@@ -67,7 +67,7 @@
                     </StackPanel>
                 </Border>
                 <!-- Right: Data received / sent totals + per-sec -->
-                <Border Grid.Column="2" Padding="12,8">
+                <Border Grid.Row="0" Grid.Column="2" Padding="12,8">
                     <Grid ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto,Auto,Auto"
                           RowSpacing="2" ColumnSpacing="12">
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Data received:" FontSize="12" />

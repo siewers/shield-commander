@@ -1,6 +1,7 @@
 using Imposter.Abstractions;
 using ShieldCommander.Core.Models;
 using ShieldCommander.Core.Services;
+using TUnit.Core.Enums;
 
 [assembly: GenerateImposter(typeof(IAdbService))]
 [assembly: GenerateImposter(typeof(ISettingsService))]
@@ -21,6 +22,7 @@ public class DeviceConnectionServiceTests
     ];
 
     [Test]
+    [RunOn(OS.MacOs)]
     public async Task Connect_NoRouteToHost_RestartsServerAndRetries()
     {
         var adb = IAdbService.Imposter();
@@ -50,6 +52,22 @@ public class DeviceConnectionServiceTests
         await Assert.That(result.Status).IsEqualTo(ConnectionStatus.Connected);
         adb.KillServerAsync().Called(Count.Once());
         adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any()).Called(Count.Exactly(2));
+    }
+
+    [Test]
+    [ExcludeOn(OS.MacOs)]
+    public async Task Connect_NoRouteToHost_OutsideMacOs_DoesNotRestartServer()
+    {
+        var adb = IAdbService.Imposter();
+        var noRoute = new AdbResult(true, $"failed to connect to '{IpAddress}:5555': No route to host");
+        adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any()).Returns(Task.FromResult(noRoute));
+        adb.GetDevicesAsync().Returns(Task.FromResult(NoDevices));
+
+        var service = CreateService(adb);
+        var result = await service.ConnectAsync(IpAddress);
+
+        await Assert.That(result.Status).IsEqualTo(ConnectionStatus.Failed);
+        adb.KillServerAsync().Called(Count.Never());
     }
 
     [Test]

@@ -87,7 +87,7 @@ public sealed partial class MainWindow : Window
             // Small delay to ensure all templates are fully applied
             await Task.Delay(TimeSpan.FromMilliseconds(100));
 
-            Dispatcher.UIThread.Post(async () =>
+            await Dispatcher.UIThread.InvokeAsync(async () =>
             {
                 foreach (var descendant in NavView.GetVisualDescendants())
                 {

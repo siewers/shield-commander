@@ -25,6 +25,7 @@
     <PackageReference Include="CommunityToolkit.Mvvm"/>
     <PackageReference Include="FluentAvaloniaUI"/>
     <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia"/>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection"/>
   </ItemGroup>
 
   <ItemGroup>

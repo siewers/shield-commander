@@ -33,9 +33,7 @@ public sealed partial class InstallView : UserControl
             return;
         }
 
-#pragma warning disable CS0618// Data is obsolete, use DataTransfer
-        var files = e.Data.GetFiles();
-#pragma warning restore CS0618
+        var files = e.DataTransfer.TryGetFiles();
         if (files != null)
         {
             var paths = files

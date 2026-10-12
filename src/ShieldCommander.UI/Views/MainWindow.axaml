@@ -11,7 +11,6 @@
         Width="900" Height="600"
         MinWidth="700" MinHeight="450"
         ExtendClientAreaToDecorationsHint="True"
-        ExtendClientAreaChromeHints="PreferSystemChrome"
         ExtendClientAreaTitleBarHeightHint="38">
 
     <NativeMenu.Menu>
@@ -74,7 +73,7 @@
         </Grid>
 
         <!-- Main content -->
-        <ui:NavigationView Grid.Row="1"
+        <ui:FANavigationView Grid.Row="1"
                            x:Name="NavView"
                            PaneDisplayMode="Left"
                            OpenPaneLength="240"
@@ -84,32 +83,32 @@
                            PaneTitle="Shield Commander"
                            SelectionChanged="NavView_SelectionChanged"
                            ItemInvoked="NavView_ItemInvoked">
-            <ui:NavigationView.Content>
+            <ui:FANavigationView.Content>
                 <ContentControl Content="{Binding CurrentPage}" Margin="24,16" />
-            </ui:NavigationView.Content>
-            <ui:NavigationView.MenuItems>
-                <ui:NavigationViewItem Content="System Info" Tag="SystemInfo"
+            </ui:FANavigationView.Content>
+            <ui:FANavigationView.MenuItems>
+                <ui:FANavigationViewItem Content="System Info" Tag="SystemInfo"
                                        IsEnabled="{Binding IsDeviceConnected}" />
-                <ui:NavigationViewItem Content="Apps" Tag="Apps"
+                <ui:FANavigationViewItem Content="Apps" Tag="Apps"
                                        IsEnabled="{Binding IsDeviceConnected}" />
-                <ui:NavigationViewItem Content="Activity Monitor" Tag="CPU"
+                <ui:FANavigationViewItem Content="Activity Monitor" Tag="CPU"
                                        IsEnabled="{Binding IsDeviceConnected}"
                                        IsExpanded="True" SelectsOnInvoked="True">
-                    <ui:NavigationViewItem.MenuItems>
-                        <ui:NavigationViewItem Content="CPU" Tag="CPU" />
-                        <ui:NavigationViewItem Content="Memory" Tag="Memory" />
-                        <ui:NavigationViewItem Content="Disk I/O" Tag="Disk" />
-                        <ui:NavigationViewItem Content="Network" Tag="Network" />
-                        <ui:NavigationViewItem Content="Thermals" Tag="Thermals" />
-                        <ui:NavigationViewItem Content="Processes" Tag="Processes" />
-                    </ui:NavigationViewItem.MenuItems>
-                </ui:NavigationViewItem>
-            </ui:NavigationView.MenuItems>
-            <ui:NavigationView.FooterMenuItems>
-                <ui:NavigationViewItem Content="Settings" Tag="Settings" SelectsOnInvoked="False"
+                    <ui:FANavigationViewItem.MenuItems>
+                        <ui:FANavigationViewItem Content="CPU" Tag="CPU" />
+                        <ui:FANavigationViewItem Content="Memory" Tag="Memory" />
+                        <ui:FANavigationViewItem Content="Disk I/O" Tag="Disk" />
+                        <ui:FANavigationViewItem Content="Network" Tag="Network" />
+                        <ui:FANavigationViewItem Content="Thermals" Tag="Thermals" />
+                        <ui:FANavigationViewItem Content="Processes" Tag="Processes" />
+                    </ui:FANavigationViewItem.MenuItems>
+                </ui:FANavigationViewItem>
+            </ui:FANavigationView.MenuItems>
+            <ui:FANavigationView.FooterMenuItems>
+                <ui:FANavigationViewItem Content="Settings" Tag="Settings" SelectsOnInvoked="False"
                                        x:Name="SettingsNavItem" />
-                <ui:NavigationViewItem Content="About" Tag="About" SelectsOnInvoked="False" />
-            </ui:NavigationView.FooterMenuItems>
-        </ui:NavigationView>
+                <ui:FANavigationViewItem Content="About" Tag="About" SelectsOnInvoked="False" />
+            </ui:FANavigationView.FooterMenuItems>
+        </ui:FANavigationView>
     </Grid>
 </Window>

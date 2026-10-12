@@ -20,7 +20,7 @@
                         <AutoCompleteBox x:Name="IpAutoComplete"
                                          Text="{Binding IpAddress, Mode=TwoWay}"
                                          ItemsSource="{Binding DeviceSuggestions}"
-                                         Watermark="192.168.1.x — type or select a device"
+                                         PlaceholderText="192.168.1.x — type or select a device"
                                          FilterMode="Contains"
                                          MinimumPrefixLength="0"
                                          MinimumPopulateDelay="0"
@@ -72,7 +72,7 @@
                             IsEnabled="{Binding IsAdbAvailable}"
                             Classes="accent" />
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                        <ui:ProgressRing Width="16" Height="16"
+                        <ui:FAProgressRing Width="16" Height="16"
                                          IsIndeterminate="True"
                                          IsVisible="{Binding IsScanning}" />
                         <Button Content="Rescan"

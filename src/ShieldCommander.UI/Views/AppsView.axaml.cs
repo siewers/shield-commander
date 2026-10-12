@@ -70,16 +70,16 @@ public sealed partial class AppsView : UserControl
 
     private static async Task ShowUninstallAsync(PackageRow row, AppsViewModel vm)
     {
-        var dialog = new ContentDialog
+        var dialog = new FAContentDialog
         {
             Title = "Uninstall App",
             Content = $"Are you sure you want to uninstall {row.PackageName}?",
             PrimaryButtonText = "Uninstall",
             CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Close,
+            DefaultButton = FAContentDialogButton.Close,
         };
 
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        if (await dialog.ShowAsync() == FAContentDialogResult.Primary)
         {
             await vm.UninstallCommand.ExecuteAsync(row);
         }
@@ -104,12 +104,12 @@ public sealed partial class AppsView : UserControl
             MinWidth = 500,
         };
 
-        var dialog = new ContentDialog
+        var dialog = new FAContentDialog
         {
             Title = "Install APK",
             Content = installView,
             CloseButtonText = "Close",
-            DefaultButton = ContentDialogButton.Close,
+            DefaultButton = FAContentDialogButton.Close,
         };
 
         await dialog.ShowAsync();

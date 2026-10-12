@@ -26,29 +26,16 @@ public sealed class App : Application
 
     private static string GetVersion()
     {
-        // Version format: yyyy.M.d[.revision][-suffix] (e.g. 2026.3.1, 2026.3.1.2, 2026.3.1-prerelease)
+        // SemVer from the release tag (e.g. 0.2.0, 0.2.0-beta.1); builds from source report 0.0.0-dev.
         // InformationalVersion carries the full string including any prerelease suffix.
-        // When running from source, the version defaults to 1.0.0.0 — show as dev build.
         var informational = typeof(App).Assembly
                                        .GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false)
                                        .OfType<AssemblyInformationalVersionAttribute>()
-                                       .FirstOrDefault()?.InformationalVersion;
+                                       .FirstOrDefault()?.InformationalVersion ?? "0.0.0-dev";
 
-        if (informational is not null)
-        {
-            // Strip the +commitHash metadata that the SDK appends (e.g. "2026.3.1-prerelease+abc123")
-            var metaIndex = informational.IndexOf('+');
-            var version = metaIndex >= 0 ? informational[..metaIndex] : informational;
-
-            // Check it's a real CI version, not the default "1.0.0"
-            if (!version.StartsWith("1.0.0"))
-            {
-                return version;
-            }
-        }
-
-        var now = DateTime.Now;
-        return $"{now:yyyy.M.d}-dev";
+        // Strip the +commitHash metadata that the SDK appends (e.g. "0.2.0-beta.1+abc123")
+        var metaIndex = informational.IndexOf('+');
+        return metaIndex >= 0 ? informational[..metaIndex] : informational;
     }
 
     public override void Initialize()

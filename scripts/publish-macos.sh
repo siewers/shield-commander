@@ -9,7 +9,7 @@ APP_NAME="Shield Commander"
 OUTPUT_DIR="$REPO_ROOT/publish"
 APP_BUNDLE="$OUTPUT_DIR/$APP_NAME.app"
 RID="${1:-osx-arm64}"
-VERSION="${2:-$(date +%Y.%-m.%-d)}"
+VERSION="${2:-0.0.0-dev}"
 
 echo "Publishing for $RID (version $VERSION)..."
 

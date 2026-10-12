@@ -8,8 +8,8 @@ public interface IDeviceConnectionService
     bool IsAdbAvailable();
 
     // Connection
-    Task<ConnectionResult> ConnectAsync(string ipAddress);
-    Task<bool> WaitForAuthorizationAsync(string ipAddress, CancellationToken ct);
+    Task<ConnectionResult> ConnectAsync(string ipAddress, string? deviceName = null);
+    Task<bool> WaitForAuthorizationAsync(string ipAddress, CancellationToken ct, string? deviceName = null);
     Task DisconnectAsync(string ipAddress);
     Task DisconnectAllAsync();
     Task<List<ShieldDevice>> GetConnectedDevicesAsync();

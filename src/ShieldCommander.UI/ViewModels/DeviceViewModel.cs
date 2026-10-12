@@ -29,6 +29,8 @@ public sealed partial class DeviceViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isScanning;
 
+    private string? _pendingDeviceName;
+
     [ObservableProperty]
     private string _statusText = "Not connected";
 
@@ -71,6 +73,8 @@ public sealed partial class DeviceViewModel : ViewModelBase
         }
     }
 
+    partial void OnIpAddressChanged(string value) => _pendingDeviceName = null;
+
     private bool CanConnect() => IPAddress.TryParse(IpAddress, out _);
 
     [RelayCommand(CanExecute = nameof(CanConnect))]
@@ -79,7 +83,10 @@ public sealed partial class DeviceViewModel : ViewModelBase
         IsBusy = true;
         StatusText = $"Connecting to {IpAddress}...";
 
-        var result = await _connectionService.ConnectAsync(IpAddress);
+        var deviceName = _pendingDeviceName;
+        _pendingDeviceName = null;
+
+        var result = await _connectionService.ConnectAsync(IpAddress, deviceName);
 
         if (result.Status == ConnectionStatus.Connected)
         {
@@ -92,7 +99,7 @@ public sealed partial class DeviceViewModel : ViewModelBase
         {
             using var cts = new CancellationTokenSource();
             var dialogTask = ShowAuthorizationDialog(cts.Token);
-            var pollTask = _connectionService.WaitForAuthorizationAsync(IpAddress, cts.Token);
+            var pollTask = _connectionService.WaitForAuthorizationAsync(IpAddress, cts.Token, deviceName);
 
             var completed = await Task.WhenAny(dialogTask, pollTask);
 
@@ -136,6 +143,8 @@ public sealed partial class DeviceViewModel : ViewModelBase
         LoadSavedDevices();
     }
 
+    public void SetPendingDeviceName(string? name) => _pendingDeviceName = name;
+
     public async Task<bool> AutoConnectAsync()
     {
         var device = _connectionService.GetAutoConnectDevice();
@@ -145,6 +154,7 @@ public sealed partial class DeviceViewModel : ViewModelBase
         }
 
         IpAddress = device.IpAddress;
+        _pendingDeviceName = device.DeviceName;
         await ConnectAsync();
         return IsConnected;
     }
@@ -153,6 +163,7 @@ public sealed partial class DeviceViewModel : ViewModelBase
     private async Task ConnectToSavedAsync(SavedDevice device)
     {
         IpAddress = device.IpAddress;
+        _pendingDeviceName = device.DeviceName;
         await ConnectAsync();
     }
 

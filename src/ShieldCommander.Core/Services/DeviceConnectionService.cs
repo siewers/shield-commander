@@ -10,7 +10,7 @@ public sealed class DeviceConnectionService(
 {
     public bool IsAdbAvailable() => adbConfig.IsAdbAvailable(null);
 
-    public async Task<ConnectionResult> ConnectAsync(string ipAddress)
+    public async Task<ConnectionResult> ConnectAsync(string ipAddress, string? deviceName = null)
     {
         await adbService.ConnectAsync(ipAddress);
 
@@ -19,14 +19,15 @@ public sealed class DeviceConnectionService(
 
         if (match != null)
         {
-            settings.AddOrUpdateDevice(ipAddress, match.DeviceName);
-            return new ConnectionResult(ConnectionStatus.Connected, match.DeviceName);
+            var name = deviceName ?? match.DeviceName;
+            settings.AddOrUpdateDevice(ipAddress, name);
+            return new ConnectionResult(ConnectionStatus.Connected, name);
         }
 
         return new ConnectionResult(ConnectionStatus.AwaitingAuthorization);
     }
 
-    public async Task<bool> WaitForAuthorizationAsync(string ipAddress, CancellationToken ct)
+    public async Task<bool> WaitForAuthorizationAsync(string ipAddress, CancellationToken ct, string? deviceName = null)
     {
         try
         {
@@ -44,7 +45,7 @@ public sealed class DeviceConnectionService(
 
                 if (match != null)
                 {
-                    settings.AddOrUpdateDevice(ipAddress, match.DeviceName);
+                    settings.AddOrUpdateDevice(ipAddress, deviceName ?? match.DeviceName);
                     return true;
                 }
             }

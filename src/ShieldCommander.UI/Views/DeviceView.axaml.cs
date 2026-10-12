@@ -3,6 +3,7 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using FluentAvalonia.UI.Controls;
 using Microsoft.Extensions.DependencyInjection;
+using ShieldCommander.Core.Models;
 using ShieldCommander.Core.Services;
 using ShieldCommander.UI.Dialogs;
 using ShieldCommander.UI.ViewModels;
@@ -11,6 +12,8 @@ namespace ShieldCommander.UI.Views;
 
 public sealed partial class DeviceView : UserControl
 {
+    private EventHandler<SelectionChangedEventArgs>? _selectionHandler;
+
     public DeviceView()
     {
         InitializeComponent();
@@ -19,9 +22,22 @@ public sealed partial class DeviceView : UserControl
 
     private async void OnDataContextChanged(object? sender, EventArgs e)
     {
+        if (_selectionHandler != null)
+        {
+            IpAutoComplete.SelectionChanged -= _selectionHandler;
+        }
+
         if (DataContext is DeviceViewModel vm)
         {
             vm.ShowAuthorizationDialog = ShowAuthorizationDialogAsync;
+            _selectionHandler = (_, args) =>
+            {
+                if (args.AddedItems is [DeviceSuggestion suggestion])
+                {
+                    vm.SetPendingDeviceName(suggestion.DisplayName);
+                }
+            };
+            IpAutoComplete.SelectionChanged += _selectionHandler;
             await vm.InitializeAsync();
         }
     }

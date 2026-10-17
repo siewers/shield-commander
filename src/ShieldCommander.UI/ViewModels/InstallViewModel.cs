@@ -2,12 +2,13 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ShieldCommander.Core.Services;
+using ShieldCommander.Core.Services.Commands;
 
 namespace ShieldCommander.UI.ViewModels;
 
 public sealed partial class InstallViewModel : ViewModelBase
 {
-    private readonly IAdbService _adbService;
+    private readonly IAdbExecutor _adb;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -18,9 +19,9 @@ public sealed partial class InstallViewModel : ViewModelBase
     [ObservableProperty]
     private string _statusText = string.Empty;
 
-    public InstallViewModel(IAdbService adbService)
+    public InstallViewModel(IAdbExecutor adb)
     {
-        _adbService = adbService;
+        _adb = adb;
     }
 
     public ObservableCollection<string> ApkQueue { get; } = [];
@@ -72,7 +73,8 @@ public sealed partial class InstallViewModel : ViewModelBase
             var fileName = Path.GetFileName(apk);
             StatusText = $"Installing {fileName} ({i + 1}/{total})...";
 
-            var result = await _adbService.InstallApkAsync(apk);
+            var install = new InstallPackageCommand(apk);
+            var result = await _adb.ExecuteAsync(install);
             if (result.Success)
             {
                 succeeded++;

@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Microsoft.Extensions.DependencyInjection;
 using ShieldCommander.Core.Models;
+using ShieldCommander.Core.Services.Queries;
 using ShieldCommander.UI.Dialogs;
 using ShieldCommander.UI.ViewModels;
 
@@ -121,10 +122,15 @@ public sealed partial class ProcessesView : UserControl
 
     private static async Task ShowProcessInfoAsync(ProcessesViewModel vm, ProcessInfo proc)
     {
-        var details = await vm.AdbService.GetProcessDetailsAsync(proc.Pid, proc.PackageName);
-        var package = proc.IsUserApp
-            ? await vm.AdbService.GetPackageInfoAsync(proc.PackageName)
-            : null;
+        var detailsQuery = new ProcessStatusQuery(proc.Pid, proc.PackageName);
+        var details = await vm.Adb.QueryAsync(detailsQuery);
+
+        InstalledPackage? package = null;
+        if (proc.IsUserApp)
+        {
+            var packageQuery = new PackageInfoQuery(proc.PackageName);
+            package = await vm.Adb.QueryAsync(packageQuery);
+        }
 
         if (await PackageInfoDialog.ShowAsync(
                 details,

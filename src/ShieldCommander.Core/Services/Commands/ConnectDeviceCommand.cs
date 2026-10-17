@@ -2,7 +2,7 @@ using ShieldCommander.Core.Models;
 
 namespace ShieldCommander.Core.Services.Commands;
 
-internal sealed class ConnectDeviceCommand(string ipAddress, int port) : IAdbCommand
+public sealed class ConnectDeviceCommand(string ipAddress, int port) : IAdbCommand
 {
     // The adb server waits for the OS TCP timeout (about 75 seconds on macOS) when the host does not answer
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);

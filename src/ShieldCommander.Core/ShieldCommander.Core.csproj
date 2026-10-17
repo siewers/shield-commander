@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="AdvancedSharpAdbClient"/>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions"/>
     <PackageReference Include="Zeroconf"/>
   </ItemGroup>
 

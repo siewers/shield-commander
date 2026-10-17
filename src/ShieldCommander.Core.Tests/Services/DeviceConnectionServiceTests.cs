@@ -1,9 +1,11 @@
 using Imposter.Abstractions;
 using ShieldCommander.Core.Models;
 using ShieldCommander.Core.Services;
+using ShieldCommander.Core.Services.Commands;
+using ShieldCommander.Core.Services.Queries;
 using TUnit.Core.Enums;
 
-[assembly: GenerateImposter(typeof(IAdbService))]
+[assembly: GenerateImposter(typeof(IAdbExecutor))]
 [assembly: GenerateImposter(typeof(ISettingsService))]
 [assembly: GenerateImposter(typeof(IDeviceDiscoveryService))]
 [assembly: GenerateImposter(typeof(IAdbConfigService))]
@@ -25,16 +27,16 @@ public class DeviceConnectionServiceTests
     [RunOn(OS.MacOs)]
     public async Task Connect_NoRouteToHost_RestartsServerAndRetries()
     {
-        var adb = IAdbService.Imposter();
+        var adb = IAdbExecutor.Imposter();
         var noRoute = new AdbResult(true, $"failed to connect to '{IpAddress}:5555': No route to host");
         var connected = new AdbResult(true, $"connected to {IpAddress}:5555");
-        adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any(), Arg<CancellationToken>.Any())
+        adb.ExecuteAsync(Arg<IAdbCommand>.Is(c => c is ConnectDeviceCommand), Arg<CancellationToken>.Any())
            .Returns(Task.FromResult(noRoute))
            .Then()
            .Returns(Task.FromResult(connected));
 
         // Two lookups per attempt: before connecting (stale transport check) and after
-        adb.GetDevicesAsync(Arg<CancellationToken>.Any())
+        adb.QueryAsync<List<ShieldDevice>>(Arg<IAdbQuery<List<ShieldDevice>>>.Any(), Arg<CancellationToken>.Any())
            .Returns(Task.FromResult(NoDevices))
            .Then()
            .Returns(Task.FromResult(NoDevices))
@@ -44,82 +46,94 @@ public class DeviceConnectionServiceTests
            .Returns(Task.FromResult(OnlineDevice));
 
         var killed = new AdbResult(true, "");
-        adb.KillServerAsync(Arg<CancellationToken>.Any()).Returns(Task.FromResult(killed));
+        adb.ExecuteAsync(Arg<IAdbCommand>.Is(c => c is KillServerCommand), Arg<CancellationToken>.Any())
+           .Returns(Task.FromResult(killed));
 
         var service = CreateService(adb);
         var result = await service.ConnectAsync(IpAddress);
 
         await Assert.That(result.Status).IsEqualTo(ConnectionStatus.Connected);
-        adb.KillServerAsync(Arg<CancellationToken>.Any()).Called(Count.Once());
-        adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any(), Arg<CancellationToken>.Any()).Called(Count.Exactly(2));
+        adb.ExecuteAsync(Arg<IAdbCommand>.Is(c => c is KillServerCommand), Arg<CancellationToken>.Any()).Called(Count.Once());
+        adb.ExecuteAsync(Arg<IAdbCommand>.Is(c => c is ConnectDeviceCommand), Arg<CancellationToken>.Any()).Called(Count.Exactly(2));
     }
 
     [Test]
     [ExcludeOn(OS.MacOs)]
     public async Task Connect_NoRouteToHost_OutsideMacOs_DoesNotRestartServer()
     {
-        var adb = IAdbService.Imposter();
+        var adb = IAdbExecutor.Imposter();
         var noRoute = new AdbResult(true, $"failed to connect to '{IpAddress}:5555': No route to host");
-        adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any(), Arg<CancellationToken>.Any()).Returns(Task.FromResult(noRoute));
-        adb.GetDevicesAsync(Arg<CancellationToken>.Any()).Returns(Task.FromResult(NoDevices));
+        adb.ExecuteAsync(Arg<IAdbCommand>.Is(c => c is ConnectDeviceCommand), Arg<CancellationToken>.Any())
+           .Returns(Task.FromResult(noRoute));
+        adb.QueryAsync<List<ShieldDevice>>(Arg<IAdbQuery<List<ShieldDevice>>>.Any(), Arg<CancellationToken>.Any())
+           .Returns(Task.FromResult(NoDevices));
 
         var service = CreateService(adb);
         var result = await service.ConnectAsync(IpAddress);
 
         await Assert.That(result.Status).IsEqualTo(ConnectionStatus.Failed);
-        adb.KillServerAsync(Arg<CancellationToken>.Any()).Called(Count.Never());
+        adb.ExecuteAsync(Arg<IAdbCommand>.Is(c => c is KillServerCommand), Arg<CancellationToken>.Any()).Called(Count.Never());
     }
 
     [Test]
     public async Task Connect_OtherFailure_DoesNotRestartServer()
     {
-        var adb = IAdbService.Imposter();
+        var adb = IAdbExecutor.Imposter();
         var refused = new AdbResult(true, $"failed to connect to '{IpAddress}:5555': Connection refused");
-        adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any(), Arg<CancellationToken>.Any()).Returns(Task.FromResult(refused));
-        adb.GetDevicesAsync(Arg<CancellationToken>.Any()).Returns(Task.FromResult(NoDevices));
+        adb.ExecuteAsync(Arg<IAdbCommand>.Is(c => c is ConnectDeviceCommand), Arg<CancellationToken>.Any())
+           .Returns(Task.FromResult(refused));
+        adb.QueryAsync<List<ShieldDevice>>(Arg<IAdbQuery<List<ShieldDevice>>>.Any(), Arg<CancellationToken>.Any())
+           .Returns(Task.FromResult(NoDevices));
 
         var service = CreateService(adb);
         var result = await service.ConnectAsync(IpAddress);
 
         await Assert.That(result.Status).IsEqualTo(ConnectionStatus.Failed);
         await Assert.That(result.Error).IsEqualTo(refused.Output);
-        adb.KillServerAsync(Arg<CancellationToken>.Any()).Called(Count.Never());
+        adb.ExecuteAsync(Arg<IAdbCommand>.Is(c => c is KillServerCommand), Arg<CancellationToken>.Any()).Called(Count.Never());
     }
 
     [Test]
     public async Task Connect_Online_OpensSessionForDeviceSerial()
     {
-        var adb = IAdbService.Imposter();
+        var adb = IAdbExecutor.Imposter();
         var connected = new AdbResult(true, $"connected to {IpAddress}:5555");
-        adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any(), Arg<CancellationToken>.Any()).Returns(Task.FromResult(connected));
-        adb.GetDevicesAsync(Arg<CancellationToken>.Any()).Returns(Task.FromResult(OnlineDevice));
+        adb.ExecuteAsync(Arg<IAdbCommand>.Is(c => c is ConnectDeviceCommand), Arg<CancellationToken>.Any())
+           .Returns(Task.FromResult(connected));
+        adb.QueryAsync<List<ShieldDevice>>(Arg<IAdbQuery<List<ShieldDevice>>>.Any(), Arg<CancellationToken>.Any())
+           .Returns(Task.FromResult(OnlineDevice));
 
-        var service = CreateService(adb);
+        var runner = IAdbRunner.Imposter();
+        var service = CreateService(adb, runner);
         var result = await service.ConnectAsync(IpAddress);
 
         await Assert.That(result.Status).IsEqualTo(ConnectionStatus.Connected);
-        adb.OpenSession($"{IpAddress}:5555").Called(Count.Once());
+        runner.OpenSession($"{IpAddress}:5555").Called(Count.Once());
     }
 
     [Test]
     public async Task Connect_Failure_DoesNotOpenSession()
     {
-        var adb = IAdbService.Imposter();
+        var adb = IAdbExecutor.Imposter();
         var refused = new AdbResult(false, $"failed to connect to '{IpAddress}:5555': Connection refused");
-        adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any(), Arg<CancellationToken>.Any()).Returns(Task.FromResult(refused));
-        adb.GetDevicesAsync(Arg<CancellationToken>.Any()).Returns(Task.FromResult(NoDevices));
+        adb.ExecuteAsync(Arg<IAdbCommand>.Is(c => c is ConnectDeviceCommand), Arg<CancellationToken>.Any())
+           .Returns(Task.FromResult(refused));
+        adb.QueryAsync<List<ShieldDevice>>(Arg<IAdbQuery<List<ShieldDevice>>>.Any(), Arg<CancellationToken>.Any())
+           .Returns(Task.FromResult(NoDevices));
 
-        var service = CreateService(adb);
+        var runner = IAdbRunner.Imposter();
+        var service = CreateService(adb, runner);
         await service.ConnectAsync(IpAddress);
 
-        adb.OpenSession(Arg<string>.Any()).Called(Count.Never());
+        runner.OpenSession(Arg<string>.Any()).Called(Count.Never());
     }
 
-    private static DeviceConnectionService CreateService(IAdbServiceImposter adb)
+    private static DeviceConnectionService CreateService(IAdbExecutorImposter adb, IAdbRunnerImposter? runner = null)
     {
+        runner ??= IAdbRunner.Imposter();
         var settings = ISettingsService.Imposter();
         var discovery = IDeviceDiscoveryService.Imposter();
         var adbConfig = IAdbConfigService.Imposter();
-        return new DeviceConnectionService(adb.Instance(), settings.Instance(), discovery.Instance(), adbConfig.Instance());
+        return new DeviceConnectionService(adb.Instance(), runner.Instance(), settings.Instance(), discovery.Instance(), adbConfig.Instance());
     }
 }

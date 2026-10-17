@@ -2,7 +2,7 @@ using ShieldCommander.Core.Models;
 
 namespace ShieldCommander.Core.Services.Queries;
 
-internal sealed class PackageInfoQuery(string packageName) : IAdbQuery<InstalledPackage>
+public sealed class PackageInfoQuery(string packageName) : IAdbQuery<InstalledPackage>
 {
     public async Task<InstalledPackage> ExecuteAsync(IAdbRunner runner, CancellationToken ct)
     {

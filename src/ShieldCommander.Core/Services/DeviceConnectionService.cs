@@ -1,9 +1,12 @@
 using ShieldCommander.Core.Models;
+using ShieldCommander.Core.Services.Commands;
+using ShieldCommander.Core.Services.Queries;
 
 namespace ShieldCommander.Core.Services;
 
 public sealed class DeviceConnectionService(
-    IAdbService adbService,
+    IAdbExecutor executor,
+    IAdbRunner runner,
     ISettingsService settings,
     IDeviceDiscoveryService discoveryService,
     IAdbConfigService adbConfig) : IDeviceConnectionService
@@ -11,6 +14,9 @@ public sealed class DeviceConnectionService(
     private const int AdbPort = 5555;
     private const int SettleAttempts = 6;
     private static readonly TimeSpan SettleInterval = TimeSpan.FromMilliseconds(500);
+    private static readonly DevicesQuery Devices = new();
+    private static readonly KillServerCommand KillServer = new();
+    private static readonly DisconnectDeviceCommand DisconnectAll = new();
 
     public bool IsAdbAvailable() => adbConfig.IsAdbAvailable(null);
 
@@ -62,7 +68,7 @@ public sealed class DeviceConnectionService(
 
     private ConnectionResult OnConnected(string ipAddress, string? deviceName)
     {
-        adbService.OpenSession(ToSerial(ipAddress));
+        runner.OpenSession(ToSerial(ipAddress));
         settings.AddOrUpdateDevice(ipAddress, deviceName);
         return new ConnectionResult(ConnectionStatus.Connected, deviceName);
     }
@@ -75,7 +81,7 @@ public sealed class DeviceConnectionService(
         // running after Shield Commander exited, gets "No route to host" until it is restarted by this app.
         if (allowServerRestart && device is null && IsLocalNetworkDenied(output))
         {
-            await adbService.KillServerAsync(ct);
+            await executor.ExecuteAsync(KillServer, ct);
             (device, output) = await ConnectOnceAsync(ipAddress, ct);
         }
 
@@ -91,12 +97,14 @@ public sealed class DeviceConnectionService(
         // and "adb connect" then reports "already connected" without reconnecting
         if ((await FindDeviceAsync(ipAddress, ct))?.State == AdbDeviceState.Offline)
         {
-            await adbService.DisconnectAsync(ToSerial(ipAddress), ct);
+            var disconnect = new DisconnectDeviceCommand(ToSerial(ipAddress));
+            await executor.ExecuteAsync(disconnect, ct);
         }
 
         // Exit code and output are unreliable here ("failed to authenticate" still connects),
         // so the device list is the source of truth
-        var result = await adbService.ConnectAsync(ipAddress, AdbPort, ct);
+        var connect = new ConnectDeviceCommand(ipAddress, AdbPort);
+        var result = await executor.ExecuteAsync(connect, ct);
 
         var device = await FindDeviceAsync(ipAddress, ct);
         for (var i = 1; i < SettleAttempts && device?.State == AdbDeviceState.Offline; i++)
@@ -111,25 +119,34 @@ public sealed class DeviceConnectionService(
     private async Task<ShieldDevice?> FindDeviceAsync(string ipAddress, CancellationToken ct)
     {
         var serial = ToSerial(ipAddress);
-        var devices = await adbService.GetDevicesAsync(ct);
+        var devices = await executor.QueryAsync(Devices, ct);
         return devices.FirstOrDefault(d => d.IpAddress == serial);
     }
 
     private static string ToSerial(string ipAddress) => $"{ipAddress}:{AdbPort}";
 
+    public event Action? SessionLost
+    {
+        add => runner.SessionLost += value;
+        remove => runner.SessionLost -= value;
+    }
+
+    public void CloseSession() => runner.CloseSession();
+
     public async Task DisconnectAsync(string ipAddress)
     {
-        await adbService.DisconnectAsync(ipAddress);
+        var disconnect = new DisconnectDeviceCommand(ipAddress);
+        await executor.ExecuteAsync(disconnect);
     }
 
     public async Task DisconnectAllAsync()
     {
-        await adbService.DisconnectAllAsync();
+        await executor.ExecuteAsync(DisconnectAll);
     }
 
     public async Task<List<ShieldDevice>> GetConnectedDevicesAsync()
     {
-        var devices = await adbService.GetDevicesAsync();
+        var devices = await executor.QueryAsync(Devices);
         return devices.Where(d => d.State == AdbDeviceState.Online).ToList();
     }
 

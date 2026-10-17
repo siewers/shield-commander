@@ -14,6 +14,10 @@ public interface IDeviceConnectionService
     Task DisconnectAllAsync();
     Task<List<ShieldDevice>> GetConnectedDevicesAsync();
 
+    // Session
+    event Action? SessionLost;
+    void CloseSession();
+
     // Saved devices
     IReadOnlyList<SavedDevice> GetSavedDevices();
     void AddOrUpdateDevice(string ipAddress, string? deviceName);

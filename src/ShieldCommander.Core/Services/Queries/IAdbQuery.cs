@@ -1,6 +1,6 @@
 namespace ShieldCommander.Core.Services.Queries;
 
-internal interface IAdbQuery<T>
+public interface IAdbQuery<T>
 {
     Task<T> ExecuteAsync(IAdbRunner runner, CancellationToken ct);
 }

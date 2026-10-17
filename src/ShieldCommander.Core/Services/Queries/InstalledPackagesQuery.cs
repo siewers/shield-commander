@@ -2,7 +2,7 @@ using ShieldCommander.Core.Models;
 
 namespace ShieldCommander.Core.Services.Queries;
 
-internal sealed class InstalledPackagesQuery : IAdbQuery<List<InstalledPackage>>
+public sealed class InstalledPackagesQuery : IAdbQuery<List<InstalledPackage>>
 {
     private const string PackageDelimiter = "===PKG===";
     private const string SizeDelimiter = "---SIZE---";

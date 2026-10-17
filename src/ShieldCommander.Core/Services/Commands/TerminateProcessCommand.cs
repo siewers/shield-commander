@@ -2,7 +2,7 @@ using ShieldCommander.Core.Models;
 
 namespace ShieldCommander.Core.Services.Commands;
 
-internal sealed class TerminateProcessCommand(int pid, string packageName) : IAdbCommand
+public sealed class TerminateProcessCommand(int pid, string packageName) : IAdbCommand
 {
     public string Name => "TerminateProcess";
 

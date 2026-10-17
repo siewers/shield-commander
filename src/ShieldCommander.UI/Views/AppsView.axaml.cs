@@ -3,6 +3,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using FluentAvalonia.UI.Controls;
 using Microsoft.Extensions.DependencyInjection;
+using ShieldCommander.Core.Services.Queries;
 using ShieldCommander.UI.Dialogs;
 using ShieldCommander.UI.ViewModels;
 
@@ -61,7 +62,8 @@ public sealed partial class AppsView : UserControl
 
     private static async Task ShowInfoAndUninstallAsync(PackageRow row, AppsViewModel vm)
     {
-        var detailed = await vm.AdbService.GetPackageInfoAsync(row.PackageName);
+        var query = new PackageInfoQuery(row.PackageName);
+        var detailed = await vm.Adb.QueryAsync(query);
         if (await PackageInfoDialog.ShowAsync(detailed, "Uninstall", $"Are you sure you want to uninstall {row.PackageName}?"))
         {
             await vm.UninstallCommand.ExecuteAsync(row);

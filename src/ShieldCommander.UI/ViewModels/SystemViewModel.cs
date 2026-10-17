@@ -1,12 +1,15 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ShieldCommander.Core.Services;
+using ShieldCommander.Core.Services.Queries;
 
 namespace ShieldCommander.UI.ViewModels;
 
 public sealed partial class SystemViewModel : ViewModelBase
 {
-    private readonly IAdbService _adbService;
+    private static readonly DeviceInfoQuery InfoQuery = new();
+
+    private readonly IAdbExecutor _adb;
 
     [ObservableProperty]
     private string? _androidVersion;
@@ -48,9 +51,9 @@ public sealed partial class SystemViewModel : ViewModelBase
     [ObservableProperty]
     private TimeSpan? _uptime;
 
-    public SystemViewModel(IAdbService adbService)
+    public SystemViewModel(IAdbExecutor adb)
     {
-        _adbService = adbService;
+        _adb = adb;
     }
 
     public async Task ActivateAsync()
@@ -79,7 +82,7 @@ public sealed partial class SystemViewModel : ViewModelBase
 
         try
         {
-            var info = await _adbService.GetDeviceInfoAsync();
+            var info = await _adb.QueryAsync(InfoQuery);
 
             Model = info.Model;
             Manufacturer = info.Manufacturer;

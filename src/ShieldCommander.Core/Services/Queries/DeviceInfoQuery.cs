@@ -2,9 +2,9 @@ using ShieldCommander.Core.Models;
 
 namespace ShieldCommander.Core.Services.Queries;
 
-internal sealed class DeviceInfoQuery : IAdbQuery<DeviceInfo>
+public sealed class DeviceInfoQuery : IAdbQuery<DeviceInfo>
 {
-    private static readonly AdbBatchQueryCollection<DeviceInfo> Commands =
+    private static readonly AdbBatchQueryCollection<DeviceInfo> Queries =
     [
         new ModelQuery(),
         new ManufacturerQuery(),
@@ -21,14 +21,14 @@ internal sealed class DeviceInfoQuery : IAdbQuery<DeviceInfo>
 
     public async Task<DeviceInfo> ExecuteAsync(IAdbRunner runner, CancellationToken ct)
     {
-        var output = await runner.RunShellAsync(Commands.ToCombinedCommand(), ct);
+        var output = await runner.RunShellAsync(Queries.ToCombinedCommand(), ct);
         return Parse(output);
     }
 
     public DeviceInfo Parse(string output)
     {
         var info = new DeviceInfo();
-        Commands.ApplyAll(output, info);
+        Queries.ApplyAll(output, info);
         return info;
     }
 

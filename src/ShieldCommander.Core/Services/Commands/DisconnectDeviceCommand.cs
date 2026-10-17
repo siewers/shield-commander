@@ -2,7 +2,7 @@ using ShieldCommander.Core.Models;
 
 namespace ShieldCommander.Core.Services.Commands;
 
-internal sealed class DisconnectDeviceCommand(string? address = null) : IAdbCommand
+public sealed class DisconnectDeviceCommand(string? address = null) : IAdbCommand
 {
     public string Name => "DisconnectDevice";
 

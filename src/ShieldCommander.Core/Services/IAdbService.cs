@@ -6,7 +6,7 @@ public interface IAdbService
 {
     event Action? SessionLost;
 
-    Task OpenSessionAsync();
+    void OpenSession(string serial);
 
     void CloseSession();
 

@@ -8,6 +8,10 @@ internal sealed class KillServerCommand : IAdbCommand
 
     public async Task<AdbResult> ExecuteAsync(IAdbRunner runner)
     {
-        return await runner.RunAdbAsync("kill-server");
+        return await runner.RunServerAsync(async (client, ct) =>
+        {
+            await client.KillAdbAsync(ct);
+            return string.Empty;
+        });
     }
 }

@@ -8,6 +8,9 @@ internal sealed class UninstallPackageCommand(string packageName) : IAdbCommand
 
     public async Task<AdbResult> ExecuteAsync(IAdbRunner runner)
     {
-        return await runner.RunAdbAsync($"uninstall {packageName}");
+        // Keep stderr so a "Failure [REASON]" printed there still reaches the caller
+        var output = (await runner.RunShellAsync($"pm uninstall {packageName} 2>&1")).Trim();
+        var success = output == "Success";
+        return new AdbResult(success, output, success ? "" : output);
     }
 }

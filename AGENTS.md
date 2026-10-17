@@ -3,7 +3,7 @@
 ## Architecture
 - Target framework `net10.0` with nullable and implicit usings enabled.
 - Preserve layered boundaries: Core contains models, services, and platform logic (ADB); UI handles presentation with MVVM. The UI layer references Core, never the reverse.
-- Keep Core free of UI and application frameworks. Its only package dependency is Zeroconf (network discovery); add others only when they are small abstraction packages, and never UI, MVVM, or DI frameworks.
+- Keep Core free of UI frameworks and UI-specific code, so another frontend (for example a mobile app) can reuse it. General-purpose libraries, including dependency injection, are fine in Core.
 - UI uses Avalonia with compiled bindings enabled by default. Use `x:DataType` on views.
 - UI uses CommunityToolkit.Mvvm: `[ObservableProperty]`, `[RelayCommand]`, and `partial void OnXChanged` for property change reactions.
 - LiveCharts2 (`LiveChartsCore.SkiaSharpView.Avalonia`) for time-series charting.

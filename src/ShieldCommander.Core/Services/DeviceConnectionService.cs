@@ -62,6 +62,7 @@ public sealed class DeviceConnectionService(
 
     private ConnectionResult OnConnected(string ipAddress, string? deviceName)
     {
+        adbService.OpenSession(ToSerial(ipAddress));
         settings.AddOrUpdateDevice(ipAddress, deviceName);
         return new ConnectionResult(ConnectionStatus.Connected, deviceName);
     }

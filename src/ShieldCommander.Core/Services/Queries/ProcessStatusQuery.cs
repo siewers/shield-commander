@@ -6,9 +6,9 @@ internal sealed class ProcessStatusQuery(int pid, string name) : IAdbQuery<Proce
 {
     public async Task<ProcessDetails> ExecuteAsync(IAdbRunner runner)
     {
-        var result = await runner.RunAdbAsync($"shell cat /proc/{pid}/status");
+        var output = await runner.RunShellAsync($"cat /proc/{pid}/status");
 
-        return result.Success ? Parse(result.Output) : new ProcessDetails(pid, name);
+        return output.Length > 0 ? Parse(output) : new ProcessDetails(pid, name);
     }
 
     public ProcessDetails Parse(string output)

@@ -86,6 +86,35 @@ public class DeviceConnectionServiceTests
         adb.KillServerAsync().Called(Count.Never());
     }
 
+    [Test]
+    public async Task Connect_Online_OpensSessionForDeviceSerial()
+    {
+        var adb = IAdbService.Imposter();
+        var connected = new AdbResult(true, $"connected to {IpAddress}:5555");
+        adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any()).Returns(Task.FromResult(connected));
+        adb.GetDevicesAsync().Returns(Task.FromResult(OnlineDevice));
+
+        var service = CreateService(adb);
+        var result = await service.ConnectAsync(IpAddress);
+
+        await Assert.That(result.Status).IsEqualTo(ConnectionStatus.Connected);
+        adb.OpenSession($"{IpAddress}:5555").Called(Count.Once());
+    }
+
+    [Test]
+    public async Task Connect_Failure_DoesNotOpenSession()
+    {
+        var adb = IAdbService.Imposter();
+        var refused = new AdbResult(false, $"failed to connect to '{IpAddress}:5555': Connection refused");
+        adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any()).Returns(Task.FromResult(refused));
+        adb.GetDevicesAsync().Returns(Task.FromResult(NoDevices));
+
+        var service = CreateService(adb);
+        await service.ConnectAsync(IpAddress);
+
+        adb.OpenSession(Arg<string>.Any()).Called(Count.Never());
+    }
+
     private static DeviceConnectionService CreateService(IAdbServiceImposter adb)
     {
         var settings = ISettingsService.Imposter();

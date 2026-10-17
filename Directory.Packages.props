@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup Label="Core">
+    <PackageVersion Include="AdvancedSharpAdbClient" Version="3.6.16"/>
     <PackageVersion Include="Zeroconf" Version="3.7.16"/>
   </ItemGroup>
 

@@ -18,7 +18,7 @@ public sealed class AdbService : IAdbService
         _runner.SessionLost += () => SessionLost?.Invoke();
     }
 
-    public Task OpenSessionAsync() => _runner.OpenSessionAsync();
+    public void OpenSession(string serial) => _runner.OpenSession(serial);
 
     public void CloseSession() => _runner.CloseSession();
 

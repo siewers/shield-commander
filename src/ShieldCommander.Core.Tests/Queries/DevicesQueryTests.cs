@@ -1,3 +1,4 @@
+using AdvancedSharpAdbClient.Models;
 using ShieldCommander.Core.Models;
 using ShieldCommander.Core.Services.Queries;
 
@@ -8,12 +9,11 @@ public class DevicesQueryTests
     private readonly DevicesQuery _query = new();
 
     [Test]
-    public async Task Parse_OnlineDevice_ReadsSerialModelAndState()
+    public async Task Map_OnlineDevice_ReadsSerialModelAndState()
     {
-        var devices = _query.Parse("""
-            List of devices attached
-            10.0.0.150:5555        device product:mdarcy model:SHIELD_Android_TV device:mdarcy transport_id:2
-            """);
+        DeviceData[] data = [new() { Serial = "10.0.0.150:5555", State = DeviceState.Online, Model = "SHIELD_Android_TV" }];
+
+        var devices = _query.Map(data);
 
         await Assert.That(devices).Count().IsEqualTo(1);
         await Assert.That(devices[0].IpAddress).IsEqualTo("10.0.0.150:5555");
@@ -22,35 +22,36 @@ public class DevicesQueryTests
     }
 
     [Test]
-    public async Task Parse_UnauthorizedDevice_IsIncludedWithState()
+    public async Task Map_UnauthorizedDeviceWithoutModel_IsIncludedWithoutName()
     {
-        var devices = _query.Parse("""
-            List of devices attached
-            10.0.0.150:5555        unauthorized transport_id:1
-            """);
+        DeviceData[] data = [new() { Serial = "10.0.0.150:5555", State = DeviceState.Unauthorized }];
+
+        var devices = _query.Map(data);
 
         await Assert.That(devices).Count().IsEqualTo(1);
+        await Assert.That(devices[0].DeviceName).IsNull();
         await Assert.That(devices[0].State).IsEqualTo(AdbDeviceState.Unauthorized);
     }
 
     [Test]
-    public async Task Parse_OfflineAndTabSeparated_ParsesBoth()
+    public async Task Map_MixedStates_MapsEach()
     {
-        var devices = _query.Parse("List of devices attached\n10.0.0.150:5555\toffline\n10.0.0.99:5555\tdevice\n");
+        DeviceData[] data =
+        [
+            new() { Serial = "10.0.0.150:5555", State = DeviceState.Offline },
+            new() { Serial = "10.0.0.99:5555", State = DeviceState.Online },
+            new() { Serial = "10.0.0.98:5555", State = DeviceState.Recovery },
+        ];
 
-        await Assert.That(devices).Count().IsEqualTo(2);
-        await Assert.That(devices[0].State).IsEqualTo(AdbDeviceState.Offline);
-        await Assert.That(devices[1].State).IsEqualTo(AdbDeviceState.Online);
+        var devices = _query.Map(data);
+
+        await Assert.That(devices.Select(d => d.State)).IsEquivalentTo([AdbDeviceState.Offline, AdbDeviceState.Online, AdbDeviceState.Unknown]);
     }
 
     [Test]
-    public async Task Parse_DaemonStartupLines_AreSkipped()
+    public async Task Map_NoDevices_ReturnsEmpty()
     {
-        var devices = _query.Parse("""
-            * daemon not running; starting now at tcp:5037
-            * daemon started successfully
-            List of devices attached
-            """);
+        var devices = _query.Map([]);
 
         await Assert.That(devices).IsEmpty();
     }

@@ -6,17 +6,17 @@ internal sealed class TerminateProcessCommand(int pid, string packageName) : IAd
 {
     public string Name => "TerminateProcess";
 
-    public async Task<AdbResult> ExecuteAsync(IAdbRunner runner)
+    public async Task<AdbResult> ExecuteAsync(IAdbRunner runner, CancellationToken ct)
     {
         var forceStopCmd = $"am force-stop {packageName} 2>&1; echo EXIT:$?";
-        var output = (await runner.RunShellAsync(forceStopCmd)).Trim();
+        var output = (await runner.RunShellAsync(forceStopCmd, ct)).Trim();
         if (output.Contains("EXIT:0") && !output.Contains("Error"))
         {
             return new AdbResult(true, output);
         }
 
         var killCmd = $"kill -9 {pid} 2>&1; echo EXIT:$?";
-        output = (await runner.RunShellAsync(killCmd)).Trim();
+        output = (await runner.RunShellAsync(killCmd, ct)).Trim();
         var success = output.Contains("EXIT:0");
         var error = output.Replace("EXIT:0", "").Replace("EXIT:1", "").Trim();
         return new AdbResult(success, output, error);

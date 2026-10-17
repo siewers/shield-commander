@@ -55,7 +55,6 @@ public sealed partial class MainWindowViewModel : ViewModelBase
                     ? $"Connected to {ip}"
                     : $"Connected to {ip} — {name}";
 
-                _ = _adbService.OpenSessionAsync();
                 _ = SystemPage.ActivateAsync();
                 _ = ActivityMonitorPage.StartAsync();
 

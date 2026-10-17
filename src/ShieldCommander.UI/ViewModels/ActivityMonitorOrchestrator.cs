@@ -82,7 +82,7 @@ public sealed partial class ActivityMonitorOrchestrator : ViewModelBase
         _cts = new CancellationTokenSource();
         _timer = new PeriodicTimer(SelectedRefreshRate.Interval);
 
-        await PollAsync();
+        await PollAsync(_cts.Token);
         StartMonitoringLoop();
     }
 
@@ -96,7 +96,7 @@ public sealed partial class ActivityMonitorOrchestrator : ViewModelBase
             {
                 while (timer is not null && await timer.WaitForNextTickAsync(cts!.Token))
                 {
-                    await PollAsync();
+                    await PollAsync(cts.Token);
                 }
             }
             catch (OperationCanceledException)
@@ -123,9 +123,15 @@ public sealed partial class ActivityMonitorOrchestrator : ViewModelBase
         }
     }
 
-    private async Task PollAsync()
+    private async Task PollAsync(CancellationToken ct)
     {
-        var snapshot = await _adbService.GetSystemSnapshotAsync();
+        var snapshot = await _adbService.GetSystemSnapshotAsync(ct);
+
+        // A cancelled read returns an empty snapshot, which would blank the charts
+        if (ct.IsCancellationRequested)
+        {
+            return;
+        }
 
         Dispatcher.UIThread.Post(() =>
         {

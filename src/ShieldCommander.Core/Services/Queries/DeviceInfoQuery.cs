@@ -19,9 +19,9 @@ internal sealed class DeviceInfoQuery : IAdbQuery<DeviceInfo>
         new IpAddressQuery(),
     ];
 
-    public async Task<DeviceInfo> ExecuteAsync(IAdbRunner runner)
+    public async Task<DeviceInfo> ExecuteAsync(IAdbRunner runner, CancellationToken ct)
     {
-        var output = await runner.RunShellAsync(Commands.ToCombinedCommand());
+        var output = await runner.RunShellAsync(Commands.ToCombinedCommand(), ct);
         return Parse(output);
     }
 

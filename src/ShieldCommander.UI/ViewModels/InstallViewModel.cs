@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using ShieldCommander.Core.Models;
 using ShieldCommander.Core.Services;
 using ShieldCommander.Core.Services.Commands;
 
@@ -12,6 +13,12 @@ public sealed partial class InstallViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool _isBusy;
+
+    [ObservableProperty]
+    private bool _isProgressIndeterminate;
+
+    [ObservableProperty]
+    private double _progressPercent;
 
     [ObservableProperty]
     private string _selectedApkPath = string.Empty;
@@ -71,9 +78,12 @@ public sealed partial class InstallViewModel : ViewModelBase
         {
             var apk = ApkQueue[i];
             var fileName = Path.GetFileName(apk);
-            StatusText = $"Installing {fileName} ({i + 1}/{total})...";
+            var label = $"{fileName} ({i + 1}/{total})";
+            var start = new InstallProgress(InstallPhase.Transferring, 0);
+            ShowProgress(label, start);
 
-            var install = new InstallPackageCommand(apk);
+            var progress = new Progress<InstallProgress>(p => ShowProgress(label, p));
+            var install = new InstallPackageCommand(apk, progress);
             var result = await _adb.ExecuteAsync(install);
             if (result.Success)
             {
@@ -97,5 +107,15 @@ public sealed partial class InstallViewModel : ViewModelBase
         }
 
         IsBusy = false;
+    }
+
+    private void ShowProgress(string label, InstallProgress progress)
+    {
+        // The package manager gives no progress while installing, so the bar only moves during the transfer
+        IsProgressIndeterminate = progress.Phase == InstallPhase.Installing;
+        ProgressPercent = progress.Percent ?? 0;
+        StatusText = progress.Phase == InstallPhase.Installing
+            ? $"Installing {label}..."
+            : $"Transferring {label}... {progress.Percent}%";
     }
 }

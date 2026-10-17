@@ -45,6 +45,15 @@
                        Margin="8,0,0,0" />
         </StackPanel>
 
+        <!-- Install progress -->
+        <ProgressBar DockPanel.Dock="Bottom"
+                     Margin="0,12,0,0"
+                     Minimum="0"
+                     Maximum="100"
+                     Value="{Binding ProgressPercent}"
+                     IsIndeterminate="{Binding IsProgressIndeterminate}"
+                     IsVisible="{Binding IsBusy}" />
+
         <!-- Queued APKs -->
         <ListBox ItemsSource="{Binding ApkQueue}"
                  Margin="0,0,0,0">

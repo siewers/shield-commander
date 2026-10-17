@@ -61,8 +61,9 @@ public sealed partial class InstallViewModel : ViewModelBase
         StatusText = string.Empty;
     }
 
-    [RelayCommand]
-    private async Task InstallAllAsync()
+    // IncludeCancelCommand generates InstallAllCancelCommand, which cancels the token passed in here
+    [RelayCommand(IncludeCancelCommand = true)]
+    private async Task InstallAllAsync(CancellationToken ct)
     {
         if (ApkQueue.Count == 0)
         {
@@ -74,28 +75,36 @@ public sealed partial class InstallViewModel : ViewModelBase
         var total = ApkQueue.Count;
         var succeeded = 0;
 
-        for (var i = 0; i < ApkQueue.Count; i++)
+        try
         {
-            var apk = ApkQueue[i];
-            var fileName = Path.GetFileName(apk);
-            var label = $"{fileName} ({i + 1}/{total})";
-            var start = new InstallProgress(InstallPhase.Transferring, 0);
-            ShowProgress(label, start);
+            for (var i = 0; i < ApkQueue.Count; i++)
+            {
+                var apk = ApkQueue[i];
+                var fileName = Path.GetFileName(apk);
+                var label = $"{fileName} ({i + 1}/{total})";
+                var start = new InstallProgress(InstallPhase.Transferring, 0);
+                ShowProgress(label, start);
 
-            var progress = new Progress<InstallProgress>(p => ShowProgress(label, p));
-            var install = new InstallPackageCommand(apk, progress);
-            var result = await _adb.ExecuteAsync(install);
-            if (result.Success)
-            {
-                succeeded++;
+                var progress = new Progress<InstallProgress>(p => ShowProgress(label, p));
+                var install = new InstallPackageCommand(apk, progress);
+                var result = await _adb.ExecuteAsync(install, ct);
+                if (result.Success)
+                {
+                    succeeded++;
+                }
+                else
+                {
+                    StatusText = $"Failed: {fileName} - {(string.IsNullOrEmpty(result.Error) ? result.Output : result.Error)}";
+                }
             }
-            else
-            {
-                StatusText = $"Failed: {fileName} - {(string.IsNullOrEmpty(result.Error) ? result.Output : result.Error)}";
-            }
+
+            StatusText = $"Done: {succeeded}/{total} installed successfully";
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText = $"Cancelled: {succeeded}/{total} installed";
         }
 
-        StatusText = $"Done: {succeeded}/{total} installed successfully";
         if (succeeded > 0)
         {
             DidInstall = true;
@@ -107,6 +116,7 @@ public sealed partial class InstallViewModel : ViewModelBase
         }
 
         IsBusy = false;
+        IsProgressIndeterminate = false;
     }
 
     private void ShowProgress(string label, InstallProgress progress)

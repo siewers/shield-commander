@@ -37,6 +37,11 @@
                     Command="{Binding InstallAllCommand}"
                     IsEnabled="{Binding !IsBusy}"
                     Classes="accent" />
+            <!-- Only the transfer can be cancelled; once the package manager is installing, the install finishes on the device anyway -->
+            <Button Content="Cancel"
+                    Command="{Binding InstallAllCancelCommand}"
+                    IsVisible="{Binding IsBusy}"
+                    IsEnabled="{Binding !IsProgressIndeterminate}" />
             <Button Content="Clear"
                     Command="{Binding ClearQueueCommand}"
                     IsEnabled="{Binding !IsBusy}" />

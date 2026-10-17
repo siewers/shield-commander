@@ -3,8 +3,6 @@ using AdvancedSharpAdbClient;
 using AdvancedSharpAdbClient.DeviceCommands;
 using AdvancedSharpAdbClient.Models;
 using ShieldCommander.Core.Models;
-using ShieldCommander.Core.Services.Commands;
-using ShieldCommander.Core.Services.Queries;
 
 namespace ShieldCommander.Core.Services;
 
@@ -111,10 +109,6 @@ public sealed class AdbRunner : IAdbRunner
             return fallback;
         }
     }
-
-    internal Task<AdbResult> ExecuteAsync(IAdbCommand command, CancellationToken ct) => command.ExecuteAsync(this, ct);
-
-    internal Task<T> ExecuteAsync<T>(IAdbQuery<T> query, CancellationToken ct) => query.ExecuteAsync(this, ct);
 
     private async Task EnsureServerAsync(CancellationToken ct)
     {

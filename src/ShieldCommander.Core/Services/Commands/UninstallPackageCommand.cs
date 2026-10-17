@@ -2,7 +2,7 @@ using ShieldCommander.Core.Models;
 
 namespace ShieldCommander.Core.Services.Commands;
 
-internal sealed class UninstallPackageCommand(string packageName) : IAdbCommand
+public sealed class UninstallPackageCommand(string packageName) : IAdbCommand
 {
     public string Name => "UninstallPackage";
 

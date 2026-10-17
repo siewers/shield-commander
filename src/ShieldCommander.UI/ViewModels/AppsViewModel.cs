@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ShieldCommander.Core.Models;
 using ShieldCommander.Core.Services;
+using ShieldCommander.Core.Services.Commands;
+using ShieldCommander.Core.Services.Queries;
 
 namespace ShieldCommander.UI.ViewModels;
 
@@ -28,8 +30,10 @@ public sealed partial class PackageRow : ObservableObject
     public string? VersionName => Package.VersionName;
 }
 
-public sealed partial class AppsViewModel(IAdbService adbService) : ViewModelBase
+public sealed partial class AppsViewModel(IAdbExecutor adb) : ViewModelBase
 {
+    private static readonly InstalledPackagesQuery PackagesQuery = new();
+
     private static readonly SemaphoreSlim SizeSemaphore = new(1);
 
     [ObservableProperty]
@@ -41,7 +45,7 @@ public sealed partial class AppsViewModel(IAdbService adbService) : ViewModelBas
     [ObservableProperty]
     private string _statusText = string.Empty;
 
-    public IAdbService AdbService { get; } = adbService;
+    public IAdbExecutor Adb { get; } = adb;
 
     public ObservableCollection<PackageRow> Packages { get; } = [];
 
@@ -58,7 +62,7 @@ public sealed partial class AppsViewModel(IAdbService adbService) : ViewModelBas
         IsBusy = true;
         StatusText = "Loading packages...";
 
-        var packages = await AdbService.GetInstalledPackagesAsync();
+        var packages = await Adb.QueryAsync(PackagesQuery);
         var incoming = packages.ToDictionary(p => p.PackageName);
         var existing = Packages.ToDictionary(r => r.PackageName);
 
@@ -103,7 +107,8 @@ public sealed partial class AppsViewModel(IAdbService adbService) : ViewModelBas
         await SizeSemaphore.WaitAsync();
         try
         {
-            var detailed = await AdbService.GetPackageInfoAsync(row.PackageName);
+            var query = new PackageInfoQuery(row.PackageName);
+            var detailed = await Adb.QueryAsync(query);
             row.CodeSize = detailed.CodeSize;
         }
         catch
@@ -123,7 +128,8 @@ public sealed partial class AppsViewModel(IAdbService adbService) : ViewModelBas
         IsBusy = true;
         StatusText = $"Uninstalling {row.PackageName}...";
 
-        var result = await AdbService.UninstallPackageAsync(row.PackageName);
+        var uninstall = new UninstallPackageCommand(row.PackageName);
+        var result = await Adb.ExecuteAsync(uninstall);
 
         if (result.Success)
         {

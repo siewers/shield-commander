@@ -3,7 +3,7 @@ using ShieldCommander.Core.Models;
 
 namespace ShieldCommander.Core.Services.Commands;
 
-internal sealed class InstallPackageCommand(string apkFilePath) : IAdbCommand
+public sealed class InstallPackageCommand(string apkFilePath) : IAdbCommand
 {
     public string Name => "InstallPackage";
 

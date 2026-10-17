@@ -1,13 +1,16 @@
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using ShieldCommander.Core.Services;
+using ShieldCommander.Core.Services.Queries;
 using ShieldCommander.UI.Models;
 
 namespace ShieldCommander.UI.ViewModels;
 
 public sealed partial class ActivityMonitorOrchestrator : ViewModelBase
 {
-    private readonly IAdbService _adbService;
+    private static readonly SystemSnapshotQuery SnapshotQuery = new();
+
+    private readonly IAdbExecutor _adb;
     private readonly IActivityMonitor[] _panels;
     private CancellationTokenSource? _cts;
 
@@ -22,9 +25,9 @@ public sealed partial class ActivityMonitorOrchestrator : ViewModelBase
 
     private PeriodicTimer? _timer;
 
-    public ActivityMonitorOrchestrator(IAdbService adbService)
+    public ActivityMonitorOrchestrator(IAdbExecutor adb)
     {
-        _adbService = adbService;
+        _adb = adb;
 
         var chartWindow = RefreshRate.Default.ChartWindow;
         var miniWindow = RefreshRate.Default.MiniWindow;
@@ -125,7 +128,7 @@ public sealed partial class ActivityMonitorOrchestrator : ViewModelBase
 
     private async Task PollAsync(CancellationToken ct)
     {
-        var snapshot = await _adbService.GetSystemSnapshotAsync(ct);
+        var snapshot = await _adb.QueryAsync(SnapshotQuery, ct);
 
         // A cancelled read returns an empty snapshot, which would blank the charts
         if (ct.IsCancellationRequested)

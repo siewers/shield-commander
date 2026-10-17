@@ -2,7 +2,7 @@ using ShieldCommander.Core.Models;
 
 namespace ShieldCommander.Core.Services.Commands;
 
-internal sealed class KillServerCommand : IAdbCommand
+public sealed class KillServerCommand : IAdbCommand
 {
     public string Name => "KillServer";
 

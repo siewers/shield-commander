@@ -3,7 +3,7 @@ using ShieldCommander.Core.Models;
 
 namespace ShieldCommander.Core.Services.Queries;
 
-internal sealed class DevicesQuery : IAdbQuery<List<ShieldDevice>>
+public sealed class DevicesQuery : IAdbQuery<List<ShieldDevice>>
 {
     public async Task<List<ShieldDevice>> ExecuteAsync(IAdbRunner runner, CancellationToken ct)
     {

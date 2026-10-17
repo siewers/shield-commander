@@ -2,7 +2,7 @@ using ShieldCommander.Core.Models;
 
 namespace ShieldCommander.Core.Services.Queries;
 
-internal sealed class DeviceInfoQuery : IAdbQuery<DeviceInfo>
+public sealed class DeviceInfoQuery : IAdbQuery<DeviceInfo>
 {
     private static readonly AdbBatchQueryCollection<DeviceInfo> Commands =
     [

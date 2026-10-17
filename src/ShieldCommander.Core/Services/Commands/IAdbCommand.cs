@@ -2,7 +2,7 @@ using ShieldCommander.Core.Models;
 
 namespace ShieldCommander.Core.Services.Commands;
 
-internal interface IAdbCommand
+public interface IAdbCommand
 {
     string Name { get; }
 

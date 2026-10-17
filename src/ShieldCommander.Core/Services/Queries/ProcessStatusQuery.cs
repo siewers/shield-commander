@@ -2,7 +2,7 @@ using ShieldCommander.Core.Models;
 
 namespace ShieldCommander.Core.Services.Queries;
 
-internal sealed class ProcessStatusQuery(int pid, string name) : IAdbQuery<ProcessDetails>
+public sealed class ProcessStatusQuery(int pid, string name) : IAdbQuery<ProcessDetails>
 {
     public async Task<ProcessDetails> ExecuteAsync(IAdbRunner runner, CancellationToken ct)
     {

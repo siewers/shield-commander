@@ -9,7 +9,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using FluentAvalonia.Styling;
 using Microsoft.Extensions.DependencyInjection;
-using ShieldCommander.Core.Services;
+using ShieldCommander.Core;
 using ShieldCommander.UI.Dialogs;
 using ShieldCommander.UI.Platform;
 using ShieldCommander.UI.ViewModels;
@@ -54,14 +54,7 @@ public sealed class App : Application
         {
             var services = new ServiceCollection();
             services.AddPlatformServices();
-            services.AddSingleton<ISettingsService, SettingsService>();
-            services.AddSingleton<IAdbPathResolver, AdbPathResolver>();
-            services.AddSingleton<IAdbPathProvider, AdbPathProvider>();
-            services.AddSingleton<IAdbRunner, AdbRunner>();
-            services.AddSingleton<IAdbService, AdbService>();
-            services.AddSingleton<IDeviceDiscoveryService, DeviceDiscoveryService>();
-            services.AddSingleton<IAdbConfigService, AdbConfigService>();
-            services.AddSingleton<IDeviceConnectionService, DeviceConnectionService>();
+            services.AddShieldCommanderCore();
             services.AddSingleton<MenuHelper>();
             services.AddTransient<MainWindowViewModel>();
 

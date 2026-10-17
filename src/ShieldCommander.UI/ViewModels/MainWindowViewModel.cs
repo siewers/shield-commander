@@ -6,7 +6,7 @@ namespace ShieldCommander.UI.ViewModels;
 
 public sealed partial class MainWindowViewModel : ViewModelBase
 {
-    private readonly IAdbService _adbService;
+    private readonly IDeviceConnectionService _connectionService;
 
     [ObservableProperty]
     private string _connectionStatusText = "Disconnected";
@@ -20,18 +20,18 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string _windowTitle = "Shield Commander — Disconnected";
 
-    public MainWindowViewModel(IAdbService adbService, IDeviceConnectionService connectionService)
+    public MainWindowViewModel(IAdbExecutor adb, IDeviceConnectionService connectionService)
     {
-        _adbService = adbService;
+        _connectionService = connectionService;
         DevicePage = new DeviceViewModel(connectionService);
-        AppsPage = new AppsViewModel(adbService);
-        InstallPage = new InstallViewModel(adbService);
-        SystemPage = new SystemViewModel(adbService);
-        ActivityMonitorPage = new ActivityMonitorOrchestrator(adbService);
-        ProcessesPage = new ProcessesViewModel(adbService, ActivityMonitorPage);
+        AppsPage = new AppsViewModel(adb);
+        InstallPage = new InstallViewModel(adb);
+        SystemPage = new SystemViewModel(adb);
+        ActivityMonitorPage = new ActivityMonitorOrchestrator(adb);
+        ProcessesPage = new ProcessesViewModel(adb, ActivityMonitorPage);
         _currentPage = SystemPage;
 
-        adbService.SessionLost += () =>
+        connectionService.SessionLost += () =>
             Dispatcher.UIThread.Post(() => DevicePage.IsConnected = false);
 
         DevicePage.PropertyChanged += (sender, args) =>
@@ -72,7 +72,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             {
                 WindowTitle = "Shield Commander — Disconnected";
                 ConnectionStatusText = "Disconnected";
-                _adbService.CloseSession();
+                _connectionService.CloseSession();
                 ActivityMonitorPage.Stop();
                 ProcessesPage.Stop();
                 ActivityMonitorPage.Clear();
@@ -95,7 +95,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     public ProcessesViewModel ProcessesPage { get; }
 
-    public void CloseAdbSession() => _adbService.CloseSession();
+    public void CloseAdbSession() => _connectionService.CloseSession();
 
     public void NavigateTo(string tag)
     {

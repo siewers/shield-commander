@@ -2,7 +2,7 @@ using ShieldCommander.Core.Models;
 
 namespace ShieldCommander.Core.Services.Queries;
 
-internal sealed class ProcessSnapshotQuery : IAdbQuery<ProcessSnapshot>
+public sealed class ProcessSnapshotQuery : IAdbQuery<ProcessSnapshot>
 {
     public async Task<ProcessSnapshot> ExecuteAsync(IAdbRunner runner, CancellationToken ct)
     {

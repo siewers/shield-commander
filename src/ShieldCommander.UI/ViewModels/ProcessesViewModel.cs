@@ -4,11 +4,15 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ShieldCommander.Core.Models;
 using ShieldCommander.Core.Services;
+using ShieldCommander.Core.Services.Commands;
+using ShieldCommander.Core.Services.Queries;
 
 namespace ShieldCommander.UI.ViewModels;
 
 public sealed partial class ProcessesViewModel : ViewModelBase
 {
+    private static readonly ProcessSnapshotQuery SnapshotQuery = new();
+
     private readonly ActivityMonitorOrchestrator _activityMonitor;
     private CancellationTokenSource? _cts;
 
@@ -32,9 +36,9 @@ public sealed partial class ProcessesViewModel : ViewModelBase
 
     private PeriodicTimer? _timer;
 
-    public ProcessesViewModel(IAdbService adbService, ActivityMonitorOrchestrator activityMonitor)
+    public ProcessesViewModel(IAdbExecutor adb, ActivityMonitorOrchestrator activityMonitor)
     {
-        AdbService = adbService;
+        Adb = adb;
         _activityMonitor = activityMonitor;
 
         _activityMonitor.PropertyChanged += (sender, args) =>
@@ -49,7 +53,7 @@ public sealed partial class ProcessesViewModel : ViewModelBase
         };
     }
 
-    public IAdbService AdbService { get; }
+    public IAdbExecutor Adb { get; }
 
     public ObservableCollection<ProcessInfo> Processes { get; } = [];
 
@@ -63,7 +67,8 @@ public sealed partial class ProcessesViewModel : ViewModelBase
             return;
         }
 
-        var result = await AdbService.TerminateProcessAsync(proc.Pid, proc.PackageName);
+        var terminate = new TerminateProcessCommand(proc.Pid, proc.PackageName);
+        var result = await Adb.ExecuteAsync(terminate);
         if (result.Success)
         {
             Processes.Remove(proc);
@@ -91,7 +96,7 @@ public sealed partial class ProcessesViewModel : ViewModelBase
         // Take two snapshots back-to-back so the first render has CPU% deltas
         if (_prevProcs.Count == 0)
         {
-            var baseSnapshot = await AdbService.GetProcessSnapshotAsync(ct);
+            var baseSnapshot = await Adb.QueryAsync(SnapshotQuery, ct);
             if (baseSnapshot.Processes.Count > 0)
             {
                 _prevProcs = baseSnapshot.Processes;
@@ -150,7 +155,7 @@ public sealed partial class ProcessesViewModel : ViewModelBase
 
     private async Task PollAsync(CancellationToken ct)
     {
-        var snapshot = await AdbService.GetProcessSnapshotAsync(ct);
+        var snapshot = await Adb.QueryAsync(SnapshotQuery, ct);
         if (snapshot.Processes.Count == 0)
         {
             return;// Bad read, skip this cycle

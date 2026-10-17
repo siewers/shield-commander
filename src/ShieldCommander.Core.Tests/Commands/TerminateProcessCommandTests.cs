@@ -18,7 +18,7 @@ public class TerminateProcessCommandTests
         var runner = imposter.Instance();
 
         var command = new TerminateProcessCommand(123, "com.example.app");
-        var result = await command.ExecuteAsync(runner);
+        var result = await command.ExecuteAsync(runner, CancellationToken.None);
 
         await Assert.That(result.Success).IsTrue();
         imposter.RunShellAsync(Arg<string>.Any(), Arg<CancellationToken>.Any())
@@ -37,7 +37,7 @@ public class TerminateProcessCommandTests
 
         var runner = imposter.Instance();
         var command = new TerminateProcessCommand(123, "com.example.app");
-        var result = await command.ExecuteAsync(runner);
+        var result = await command.ExecuteAsync(runner, CancellationToken.None);
 
         await Assert.That(result.Success).IsTrue();
     }
@@ -55,7 +55,7 @@ public class TerminateProcessCommandTests
         var runner = imposter.Instance();
 
         var command = new TerminateProcessCommand(123, "com.example.app");
-        var result = await command.ExecuteAsync(runner);
+        var result = await command.ExecuteAsync(runner, CancellationToken.None);
 
         await Assert.That(result.Success).IsFalse();
     }
@@ -73,7 +73,7 @@ public class TerminateProcessCommandTests
         var runner = imposter.Instance();
 
         var command = new TerminateProcessCommand(123, "com.example.app");
-        var result = await command.ExecuteAsync(runner);
+        var result = await command.ExecuteAsync(runner, CancellationToken.None);
 
         await Assert.That(result.Success).IsTrue();
         imposter.RunShellAsync(Arg<string>.Any(), Arg<CancellationToken>.Any())

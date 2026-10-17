@@ -5,9 +5,9 @@ namespace ShieldCommander.Core.Services.Queries;
 
 internal sealed class DevicesQuery : IAdbQuery<List<ShieldDevice>>
 {
-    public async Task<List<ShieldDevice>> ExecuteAsync(IAdbRunner runner)
+    public async Task<List<ShieldDevice>> ExecuteAsync(IAdbRunner runner, CancellationToken ct)
     {
-        var devices = await runner.QueryServerAsync((client, ct) => client.GetDevicesAsync(ct), []);
+        var devices = await runner.QueryServerAsync((client, token) => client.GetDevicesAsync(token), [], ct);
 
         return Map(devices);
     }

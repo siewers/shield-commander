@@ -28,13 +28,13 @@ public class DeviceConnectionServiceTests
         var adb = IAdbService.Imposter();
         var noRoute = new AdbResult(true, $"failed to connect to '{IpAddress}:5555': No route to host");
         var connected = new AdbResult(true, $"connected to {IpAddress}:5555");
-        adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any())
+        adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any(), Arg<CancellationToken>.Any())
            .Returns(Task.FromResult(noRoute))
            .Then()
            .Returns(Task.FromResult(connected));
 
         // Two lookups per attempt: before connecting (stale transport check) and after
-        adb.GetDevicesAsync()
+        adb.GetDevicesAsync(Arg<CancellationToken>.Any())
            .Returns(Task.FromResult(NoDevices))
            .Then()
            .Returns(Task.FromResult(NoDevices))
@@ -44,14 +44,14 @@ public class DeviceConnectionServiceTests
            .Returns(Task.FromResult(OnlineDevice));
 
         var killed = new AdbResult(true, "");
-        adb.KillServerAsync().Returns(Task.FromResult(killed));
+        adb.KillServerAsync(Arg<CancellationToken>.Any()).Returns(Task.FromResult(killed));
 
         var service = CreateService(adb);
         var result = await service.ConnectAsync(IpAddress);
 
         await Assert.That(result.Status).IsEqualTo(ConnectionStatus.Connected);
-        adb.KillServerAsync().Called(Count.Once());
-        adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any()).Called(Count.Exactly(2));
+        adb.KillServerAsync(Arg<CancellationToken>.Any()).Called(Count.Once());
+        adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any(), Arg<CancellationToken>.Any()).Called(Count.Exactly(2));
     }
 
     [Test]
@@ -60,14 +60,14 @@ public class DeviceConnectionServiceTests
     {
         var adb = IAdbService.Imposter();
         var noRoute = new AdbResult(true, $"failed to connect to '{IpAddress}:5555': No route to host");
-        adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any()).Returns(Task.FromResult(noRoute));
-        adb.GetDevicesAsync().Returns(Task.FromResult(NoDevices));
+        adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any(), Arg<CancellationToken>.Any()).Returns(Task.FromResult(noRoute));
+        adb.GetDevicesAsync(Arg<CancellationToken>.Any()).Returns(Task.FromResult(NoDevices));
 
         var service = CreateService(adb);
         var result = await service.ConnectAsync(IpAddress);
 
         await Assert.That(result.Status).IsEqualTo(ConnectionStatus.Failed);
-        adb.KillServerAsync().Called(Count.Never());
+        adb.KillServerAsync(Arg<CancellationToken>.Any()).Called(Count.Never());
     }
 
     [Test]
@@ -75,15 +75,15 @@ public class DeviceConnectionServiceTests
     {
         var adb = IAdbService.Imposter();
         var refused = new AdbResult(true, $"failed to connect to '{IpAddress}:5555': Connection refused");
-        adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any()).Returns(Task.FromResult(refused));
-        adb.GetDevicesAsync().Returns(Task.FromResult(NoDevices));
+        adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any(), Arg<CancellationToken>.Any()).Returns(Task.FromResult(refused));
+        adb.GetDevicesAsync(Arg<CancellationToken>.Any()).Returns(Task.FromResult(NoDevices));
 
         var service = CreateService(adb);
         var result = await service.ConnectAsync(IpAddress);
 
         await Assert.That(result.Status).IsEqualTo(ConnectionStatus.Failed);
         await Assert.That(result.Error).IsEqualTo(refused.Output);
-        adb.KillServerAsync().Called(Count.Never());
+        adb.KillServerAsync(Arg<CancellationToken>.Any()).Called(Count.Never());
     }
 
     [Test]
@@ -91,8 +91,8 @@ public class DeviceConnectionServiceTests
     {
         var adb = IAdbService.Imposter();
         var connected = new AdbResult(true, $"connected to {IpAddress}:5555");
-        adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any()).Returns(Task.FromResult(connected));
-        adb.GetDevicesAsync().Returns(Task.FromResult(OnlineDevice));
+        adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any(), Arg<CancellationToken>.Any()).Returns(Task.FromResult(connected));
+        adb.GetDevicesAsync(Arg<CancellationToken>.Any()).Returns(Task.FromResult(OnlineDevice));
 
         var service = CreateService(adb);
         var result = await service.ConnectAsync(IpAddress);
@@ -106,8 +106,8 @@ public class DeviceConnectionServiceTests
     {
         var adb = IAdbService.Imposter();
         var refused = new AdbResult(false, $"failed to connect to '{IpAddress}:5555': Connection refused");
-        adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any()).Returns(Task.FromResult(refused));
-        adb.GetDevicesAsync().Returns(Task.FromResult(NoDevices));
+        adb.ConnectAsync(Arg<string>.Any(), Arg<int>.Any(), Arg<CancellationToken>.Any()).Returns(Task.FromResult(refused));
+        adb.GetDevicesAsync(Arg<CancellationToken>.Any()).Returns(Task.FromResult(NoDevices));
 
         var service = CreateService(adb);
         await service.ConnectAsync(IpAddress);

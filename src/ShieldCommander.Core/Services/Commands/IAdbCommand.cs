@@ -6,5 +6,5 @@ internal interface IAdbCommand
 {
     string Name { get; }
 
-    Task<AdbResult> ExecuteAsync(IAdbRunner runner);
+    Task<AdbResult> ExecuteAsync(IAdbRunner runner, CancellationToken ct);
 }

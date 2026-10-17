@@ -4,12 +4,12 @@ namespace ShieldCommander.Core.Services.Queries;
 
 internal sealed class PackageInfoQuery(string packageName) : IAdbQuery<InstalledPackage>
 {
-    public async Task<InstalledPackage> ExecuteAsync(IAdbRunner runner)
+    public async Task<InstalledPackage> ExecuteAsync(IAdbRunner runner, CancellationToken ct)
     {
         var cmd = $"dumpsys package {packageName}; echo ---; "
                 + $"stat -c %s $(pm path {packageName} | sed 's/package://g') 2>/dev/null";
 
-        var output = await runner.RunShellAsync(cmd);
+        var output = await runner.RunShellAsync(cmd, ct);
 
         return output.Length > 0 ? Parse(output) : new InstalledPackage(packageName);
     }

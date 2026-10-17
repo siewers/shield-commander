@@ -9,15 +9,16 @@ internal sealed class ConnectDeviceCommand(string ipAddress, int port) : IAdbCom
 
     public string Name => "ConnectDevice";
 
-    public async Task<AdbResult> ExecuteAsync(IAdbRunner runner)
+    public async Task<AdbResult> ExecuteAsync(IAdbRunner runner, CancellationToken ct)
     {
-        using var cts = new CancellationTokenSource(Timeout);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        cts.CancelAfter(Timeout);
 
         try
         {
-            return await runner.RunServerAsync((client, ct) => client.ConnectAsync(ipAddress, port, ct), cts.Token);
+            return await runner.RunServerAsync((client, token) => client.ConnectAsync(ipAddress, port, token), cts.Token);
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
             return new AdbResult(false, "", $"Timed out connecting to {ipAddress}:{port}");
         }

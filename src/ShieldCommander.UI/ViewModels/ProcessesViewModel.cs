@@ -84,13 +84,14 @@ public sealed partial class ProcessesViewModel : ViewModelBase
 
         IsMonitoring = true;
         _cts = new CancellationTokenSource();
+        var ct = _cts.Token;
         _timer = new PeriodicTimer(_activityMonitor.SelectedRefreshRate.Interval);
         StatusText = "Starting...";
 
         // Take two snapshots back-to-back so the first render has CPU% deltas
         if (_prevProcs.Count == 0)
         {
-            var baseSnapshot = await AdbService.GetProcessSnapshotAsync();
+            var baseSnapshot = await AdbService.GetProcessSnapshotAsync(ct);
             if (baseSnapshot.Processes.Count > 0)
             {
                 _prevProcs = baseSnapshot.Processes;
@@ -100,7 +101,7 @@ public sealed partial class ProcessesViewModel : ViewModelBase
             }
         }
 
-        await PollAsync();
+        await PollAsync(ct);
         StartMonitoringLoop();
     }
 
@@ -137,7 +138,7 @@ public sealed partial class ProcessesViewModel : ViewModelBase
                 {
                     if (!IsPollingSuspended)
                     {
-                        await PollAsync();
+                        await PollAsync(cts.Token);
                     }
                 }
             }
@@ -147,9 +148,9 @@ public sealed partial class ProcessesViewModel : ViewModelBase
         });
     }
 
-    private async Task PollAsync()
+    private async Task PollAsync(CancellationToken ct)
     {
-        var snapshot = await AdbService.GetProcessSnapshotAsync();
+        var snapshot = await AdbService.GetProcessSnapshotAsync(ct);
         if (snapshot.Processes.Count == 0)
         {
             return;// Bad read, skip this cycle

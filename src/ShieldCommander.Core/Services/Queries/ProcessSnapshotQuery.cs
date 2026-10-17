@@ -4,14 +4,14 @@ namespace ShieldCommander.Core.Services.Queries;
 
 internal sealed class ProcessSnapshotQuery : IAdbQuery<ProcessSnapshot>
 {
-    public async Task<ProcessSnapshot> ExecuteAsync(IAdbRunner runner)
+    public async Task<ProcessSnapshot> ExecuteAsync(IAdbRunner runner, CancellationToken ct)
     {
         const string cmd = "cat /proc/stat; echo ---; "
                          + "cat /proc/[0-9]*/stat; echo ---; "
                          + "ls -ldn /proc/[0-9]*; echo ---; "
                          + "ps -A -o PID,ARGS";
 
-        var output = await runner.RunShellAsync(cmd);
+        var output = await runner.RunShellAsync(cmd, ct);
 
         return string.IsNullOrWhiteSpace(output)
             ? new ProcessSnapshot(new Dictionary<int, RawProcessEntry>(), 0, 0)

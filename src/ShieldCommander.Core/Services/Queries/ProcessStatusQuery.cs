@@ -4,9 +4,9 @@ namespace ShieldCommander.Core.Services.Queries;
 
 internal sealed class ProcessStatusQuery(int pid, string name) : IAdbQuery<ProcessDetails>
 {
-    public async Task<ProcessDetails> ExecuteAsync(IAdbRunner runner)
+    public async Task<ProcessDetails> ExecuteAsync(IAdbRunner runner, CancellationToken ct)
     {
-        var output = await runner.RunShellAsync($"cat /proc/{pid}/status");
+        var output = await runner.RunShellAsync($"cat /proc/{pid}/status", ct);
 
         return output.Length > 0 ? Parse(output) : new ProcessDetails(pid, name);
     }

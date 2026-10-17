@@ -112,9 +112,9 @@ public sealed class AdbRunner : IAdbRunner
         }
     }
 
-    internal Task<AdbResult> ExecuteAsync(IAdbCommand command) => command.ExecuteAsync(this);
+    internal Task<AdbResult> ExecuteAsync(IAdbCommand command, CancellationToken ct) => command.ExecuteAsync(this, ct);
 
-    internal Task<T> ExecuteAsync<T>(IAdbQuery<T> query) => query.ExecuteAsync(this);
+    internal Task<T> ExecuteAsync<T>(IAdbQuery<T> query, CancellationToken ct) => query.ExecuteAsync(this, ct);
 
     private async Task EnsureServerAsync(CancellationToken ct)
     {

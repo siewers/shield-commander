@@ -6,13 +6,13 @@ internal sealed class DisconnectDeviceCommand(string? address = null) : IAdbComm
 {
     public string Name => "DisconnectDevice";
 
-    public async Task<AdbResult> ExecuteAsync(IAdbRunner runner)
+    public async Task<AdbResult> ExecuteAsync(IAdbRunner runner, CancellationToken ct)
     {
-        return await runner.RunServerAsync(async (client, ct) =>
+        return await runner.RunServerAsync(async (client, token) =>
         {
             // Without an address the adb server disconnects every network device
-            await client.ExecuteServerCommandAsync("host", $"disconnect:{address}", ct);
+            await client.ExecuteServerCommandAsync("host", $"disconnect:{address}", token);
             return string.Empty;
-        });
+        }, ct);
     }
 }

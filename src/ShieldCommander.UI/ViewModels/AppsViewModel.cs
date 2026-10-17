@@ -16,18 +16,26 @@ public sealed partial class PackageRow : ObservableObject
     [ObservableProperty]
     private bool _isSizeLoading = true;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(VersionName))]
+    private InstalledPackage _package;
+
     public PackageRow(InstalledPackage package)
     {
-        Package = package;
-        _codeSize = package.CodeSize;
-        _isSizeLoading = package.CodeSize is null;
+        _package = package;
+        Update(package);
     }
-
-    public InstalledPackage Package { get; }
 
     public string PackageName => Package.PackageName;
 
     public string? VersionName => Package.VersionName;
+
+    public void Update(InstalledPackage package)
+    {
+        Package = package;
+        CodeSize = package.CodeSize;
+        IsSizeLoading = package.CodeSize is null;
+    }
 }
 
 public sealed partial class AppsViewModel(IAdbExecutor adb) : ViewModelBase
@@ -75,24 +83,29 @@ public sealed partial class AppsViewModel(IAdbExecutor adb) : ViewModelBase
             }
         }
 
-        // Add new packages
-        var newRows = new List<PackageRow>();
+        // Add new packages and update the ones that changed, for example after an upgrade
+        var changedRows = new List<PackageRow>();
         foreach (var pkg in packages)
         {
-            if (!existing.ContainsKey(pkg.PackageName))
+            if (!existing.TryGetValue(pkg.PackageName, out var row))
             {
-                var row = new PackageRow(pkg);
+                row = new PackageRow(pkg);
                 Packages.Add(row);
-                newRows.Add(row);
+                changedRows.Add(row);
+            }
+            else if (row.Package != pkg)
+            {
+                row.Update(pkg);
+                changedRows.Add(row);
             }
         }
 
         StatusText = $"{Packages.Count} packages found";
         IsBusy = false;
 
-        if (newRows.Count > 0)
+        if (changedRows.Count > 0)
         {
-            _ = LoadSizesAsync(newRows);
+            _ = LoadSizesAsync(changedRows);
         }
     }
 

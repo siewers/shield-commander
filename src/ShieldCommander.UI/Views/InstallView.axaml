@@ -35,6 +35,7 @@
                     Margin="0,12,0,0">
             <Button Content="Install All"
                     Command="{Binding InstallAllCommand}"
+                    IsVisible="{Binding !!ApkQueue.Count}"
                     IsEnabled="{Binding !IsBusy}"
                     Classes="accent" />
             <!-- Only the transfer can be cancelled; once the package manager is installing, the install finishes on the device anyway -->
@@ -44,20 +45,31 @@
                     IsEnabled="{Binding !IsProgressIndeterminate}" />
             <Button Content="Clear"
                     Command="{Binding ClearQueueCommand}"
+                    IsVisible="{Binding !!ApkQueue.Count}"
                     IsEnabled="{Binding !IsBusy}" />
-            <TextBlock Text="{Binding StatusText}"
-                       VerticalAlignment="Center"
-                       Margin="8,0,0,0" />
         </StackPanel>
 
-        <!-- Install progress -->
-        <ProgressBar DockPanel.Dock="Bottom"
-                     Margin="0,12,0,0"
-                     Minimum="0"
-                     Maximum="100"
-                     Value="{Binding ProgressPercent}"
-                     IsIndeterminate="{Binding IsProgressIndeterminate}"
-                     IsVisible="{Binding IsBusy}" />
+        <!-- Install progress, with the status written on the bar -->
+        <Panel DockPanel.Dock="Bottom"
+               Margin="0,12,0,0"
+               IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <ProgressBar Height="28"
+                         CornerRadius="4"
+                         Minimum="0"
+                         Maximum="100"
+                         Value="{Binding ProgressPercent}"
+                         IsIndeterminate="{Binding IsProgressIndeterminate}">
+                <ProgressBar.Resources>
+                    <!-- The theme draws the track as a 1 px line, which would run through the text -->
+                    <x:Double x:Key="ProgressBarTrackHeight">28</x:Double>
+                </ProgressBar.Resources>
+            </ProgressBar>
+            <TextBlock Text="{Binding StatusText}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Margin="12,0"
+                       TextTrimming="CharacterEllipsis" />
+        </Panel>
 
         <!-- Queued APKs -->
         <ListBox ItemsSource="{Binding ApkQueue}"
@@ -73,6 +85,7 @@
                                 Content="Remove"
                                 Command="{Binding $parent[ListBox].((vm:InstallViewModel)DataContext).RemoveApkCommand}"
                                 CommandParameter="{Binding}"
+                                IsEnabled="{Binding !$parent[ListBox].((vm:InstallViewModel)DataContext).IsBusy}"
                                 Padding="8,4" />
                     </Grid>
                 </DataTemplate>

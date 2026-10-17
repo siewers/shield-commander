@@ -29,6 +29,15 @@ public sealed partial class InstallViewModel : ViewModelBase
     public InstallViewModel(IAdbExecutor adb)
     {
         _adb = adb;
+
+        // A result from an earlier run no longer applies once the queue changes
+        ApkQueue.CollectionChanged += (_, _) =>
+        {
+            if (!IsBusy)
+            {
+                StatusText = string.Empty;
+            }
+        };
     }
 
     public ObservableCollection<string> ApkQueue { get; } = [];
@@ -58,19 +67,12 @@ public sealed partial class InstallViewModel : ViewModelBase
     private void ClearQueue()
     {
         ApkQueue.Clear();
-        StatusText = string.Empty;
     }
 
     // IncludeCancelCommand generates InstallAllCancelCommand, which cancels the token passed in here
     [RelayCommand(IncludeCancelCommand = true)]
     private async Task InstallAllAsync(CancellationToken ct)
     {
-        if (ApkQueue.Count == 0)
-        {
-            StatusText = "No APKs to install";
-            return;
-        }
-
         IsBusy = true;
         var total = ApkQueue.Count;
         var succeeded = 0;
@@ -98,11 +100,14 @@ public sealed partial class InstallViewModel : ViewModelBase
                 }
             }
 
+            // The status stays on the bar after the run, so leave it full only when everything installed
+            ProgressPercent = succeeded == total ? 100 : 0;
             StatusText = $"Done: {succeeded}/{total} installed successfully";
         }
         catch (OperationCanceledException)
         {
-            StatusText = $"Cancelled: {succeeded}/{total} installed";
+            // The status is shown on the progress bar, so clearing it hides the bar
+            StatusText = string.Empty;
         }
 
         if (succeeded > 0)

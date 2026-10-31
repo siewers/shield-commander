@@ -23,7 +23,7 @@
 
   <ItemGroup Label="Tests">
     <PackageVersion Include="Imposter" Version="0.1.9"/>
-    <PackageVersion Include="TUnit" Version="1.22.6"/>
+    <PackageVersion Include="TUnit" Version="1.77.0"/>
   </ItemGroup>
 
 </Project>
